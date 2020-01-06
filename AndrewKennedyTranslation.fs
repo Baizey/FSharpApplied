@@ -1,4 +1,4 @@
-﻿namespace Lasse
+﻿namespace Project1
 
 module AndrewKennedyTree =
     type 'a Tree = Node of 'a * ('a Tree list)

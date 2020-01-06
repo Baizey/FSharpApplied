@@ -1,4 +1,4 @@
-﻿namespace Lasse
+﻿namespace Project1
 
 open AndrewKennedyTree
 
