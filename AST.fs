@@ -55,16 +55,16 @@ module AST =
 
     let rec convertExp (exp: Exp) =
       match exp with
-      | N(i) -> Node("N " + string i, [])
-      | B(b) -> Node("B " + string b, [])
+      | N(i) -> Node("N", [Node(string i, [])])
+      | B(b) -> Node("B", [Node(string b, [])])
       | Access(acc) -> Node("Access", [convertAccess acc])
       | Addr(acc) -> Node("Addr", [convertAccess acc])
-      | Apply(str, expl) -> Node("Apply " + str, convertExpList expl)
-    and convertExpList (expl: Exp list) = List.map (fun x -> convertExp x) expl
+      | Apply(str, expl) -> Node("Apply " + str, [convertExpList expl])
+    and convertExpList (expl: Exp list) = Node("ExpList", List.map (fun x -> convertExp x) expl)
 
     and convertAccess (acc: Access) =
       match acc with
-      | AVar(str) -> Node("AVar \"" + str + "\"", [])
+      | AVar(str) -> Node("AVar", [Node(str, [])])
       | AIndex(acc', exp) -> Node("AIndex", [convertAccess acc'; convertExp exp])
       | ADeref(exp) -> Node("ADeref", [convertExp exp])
 
@@ -78,19 +78,25 @@ module AST =
         | None -> Node("Return", [])
       | Alt(gc) -> Node("Alt", [convertGc gc])
       | Do(gc) -> Node("Do", [convertGc gc])
-      | Block(decl, stml) -> Node("Block", convertDecList decl @ convertStmList stml)
-      | Call(str, expl) -> Node("Call " + str, convertExpList expl)
-    and convertStmList (stml: Stm list) = List.map (fun x -> convertStm x) stml
+      | Block(decl, stml) -> Node("Block", [convertDecList decl; convertStmList stml])
+      | Call(str, expl) -> Node("Call " + str, [convertExpList expl])
+    and convertStmList (stml: Stm list) = Node("StmList", List.map (fun x -> convertStm x) stml)
 
     and convertGc (GC(gc): GuardedCommand) =
       let convertGcElem ((exp, stml): (Exp * Stm list)) =
-        Node("GcElem", convertExp exp :: convertStmList stml)
+        Node("GcElem", [convertExp exp; convertStmList stml])
       Node("Gc", List.map (fun x -> convertGcElem x) gc)
 
     and convertDec (dec: Dec) = 
       match dec with 
       | VarDec(typ, x) -> Node("VarDec", [convertType typ; Node(x, [])])
-      | FunDec(typ, str, decl, stm) -> Node("FunDec", [])
-    and convertDecList (decl: Dec list) = List.map (fun x -> convertDec x) decl
+      | FunDec(typOpt, str, decl, stm) -> 
+        match typOpt with
+        | Some(typ) -> Node("FunDec", [convertType typ; Node(str, []); convertDecList decl; convertStm stm])
+        | None -> Node("FunDec", [Node(str, []); convertDecList decl; convertStm stm])
+    and convertDecList (decl: Dec list) = Node("DecList", List.map (fun x -> convertDec x) decl)
 
-    Node("Program", convertDecList decl @ convertStmList stml)
+    // | FunDec of Typ option * string * Dec list * Stm
+
+
+    Node("Program", [convertDecList decl; convertStmList stml])
