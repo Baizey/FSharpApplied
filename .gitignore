@@ -2,6 +2,8 @@
 # Created by https://www.gitignore.io/api/fsharp,visualstudio
 # Edit at https://www.gitignore.io/?templates=fsharp,visualstudio
 
+.idea
+
 ### fsharp ###
 lib/debug
 lib/release
@@ -363,3 +365,4 @@ healthchecksdb
 MigrationBackup/
 
 # End of https://www.gitignore.io/api/fsharp,visualstudio
+.idea/.idea.FSharp/.idea/.name
