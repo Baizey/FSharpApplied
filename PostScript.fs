@@ -8,12 +8,12 @@ module PostScript =
     let postScriptString (tree: 'a PosTree) =
         let output = StringBuilder("<</PageSize[1400 1000]/ImagingBBox null>> setpagedevice\n")
         output.AppendLine("1 1 scale").AppendLine("700 999 translate").AppendLine("newpath")
-              .AppendLine("/Times-Roman findfont 30 scalefont setfont") |> ignore
+              .AppendLine("/Times-Roman findfont 10 scalefont setfont") |> ignore
 
 
-        let factor = 100.0
+        let factor = 30.0
         let halfFactor = factor / 2.0
-        let textSize = 30.0
+        let textSize = 10.0
         let halfTextSize = textSize / 2.0
 
         let rec draw (PosNode((label, pos), children): 'a PosTree) (x: float) (y: float) (isRoot: bool): int =

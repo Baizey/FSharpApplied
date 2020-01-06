@@ -8,6 +8,7 @@
     <ItemGroup>
         <Compile Include="AndrewKennedyTranslation.fs" />
         <Compile Include="PostScript.fs" />
+        <Compile Include="TreeGenerator.fs" />
         <Compile Include="Driver.fs" />
     </ItemGroup>
 
