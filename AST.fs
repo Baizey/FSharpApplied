@@ -44,9 +44,7 @@ module AST =
   type Program = P of Dec list * Stm list   (* Program                 *)
 
 
-  let convertToNodes (program: Program) =
-    let (a, b) = program
-    // Declarations
+  let convertToNodes (P(decl, stml): Program) =
     let rec convertType (typ: Typ) =
       match typ with
       | ITyp -> Node("ITyp", [])
@@ -84,9 +82,7 @@ module AST =
       | Call(str, expl) -> Node("Call " + str, convertExpList expl)
     and convertStmList (stml: Stm list) = List.map (fun x -> convertStm x) stml
 
-    // and GuardedCommand = GC of (Exp * Stm list) list (* Guarded commands    *)
-
-    and convertGc (gc: GuardedCommand) =
+    and convertGc (GC(gc): GuardedCommand) =
       let convertGcElem ((exp, stml): (Exp * Stm list)) =
         Node("GcElem", convertExp exp :: convertStmList stml)
       Node("Gc", List.map (fun x -> convertGcElem x) gc)
@@ -94,8 +90,7 @@ module AST =
     and convertDec (dec: Dec) = 
       match dec with 
       | VarDec(typ, x) -> Node("VarDec", [convertType typ; Node(x, [])])
-      | FunDec(typ, str, decl, stm) -> Node("Fun", [])
+      | FunDec(typ, str, decl, stm) -> Node("FunDec", [])
     and convertDecList (decl: Dec list) = List.map (fun x -> convertDec x) decl
 
-    let (decl, stml) = program
     Node("Program", convertDecList decl @ convertStmList stml)
