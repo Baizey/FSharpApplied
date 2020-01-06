@@ -58,4 +58,4 @@ module AndrewKennedyTree =
             let resultExtent = (0.0, 0.0) :: flatExtents
             let resulttree = PosNode((label, 0.0), ptrees)
             (resulttree, resultExtent)
-        fst(innerDesign (tree))
+        innerDesign (tree)

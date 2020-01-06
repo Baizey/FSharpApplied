@@ -1,20 +1,31 @@
 ﻿namespace Project1
 
-open AndrewKennedyTree
 open System.Text
+open AndrewKennedyTree
 
 module PostScript =
+    // Change these to change size of prints
+    let factor = 30.0
+    let textSize = 10.0
 
-    let postScriptString (tree: 'a PosTree) =
-        let output = StringBuilder("<</PageSize[1400 1000]/ImagingBBox null>> setpagedevice\n")
-        output.AppendLine("1 1 scale").AppendLine("700 999 translate").AppendLine("newpath")
-              .AppendLine("/Times-Roman findfont 10 scalefont setfont") |> ignore
+    let postScriptString (tree: 'a PosTree) (extent: Extent) =
+        let (f, t) =
+            extent
+            |> List.rev
+            |> List.head
 
-
-        let factor = 30.0
+        let width = int (abs (t - f) * factor) + 30
+        let height = extent.Length * int factor + 30
+        let rootSpot = int ((float width / 2.0) - ((f + t) / 2.0) * factor)
         let halfFactor = factor / 2.0
-        let textSize = 10.0
         let halfTextSize = textSize / 2.0
+
+        let size =
+            sprintf "<</PageSize[%d %d]/ImagingBBox null>> setpagedevice\n" width height
+
+        let output = StringBuilder(size)
+        output.AppendLine("1 1 scale").AppendLine(sprintf "%d %d translate" rootSpot (height - 1)).AppendLine("newpath")
+              .AppendLine(sprintf "/Times-Roman findfont %d scalefont setfont" (int textSize)) |> ignore
 
         let rec draw (PosNode((label, pos), children): 'a PosTree) (x: float) (y: float) (isRoot: bool): int =
             let rec drawInner (children: 'a PosTree list) (x: float) (y: float) =

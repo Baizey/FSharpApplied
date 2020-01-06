@@ -13,7 +13,6 @@ module TreeGenerator =
         match height with
         | 0 -> Node("A", [])
         | _ ->
-            let r = random 1 maxDegrees
             Node
                 ("A",
-                 [ for _ in 0 .. r -> generate maxDegrees (height - 1) ])
+                 [ for _ in 1 .. maxDegrees -> generate maxDegrees (height - 1) ])
