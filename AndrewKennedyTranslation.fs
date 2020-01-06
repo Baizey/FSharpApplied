@@ -1,4 +1,4 @@
-﻿namespace Lasse
+﻿namespace Project1
 
 module AndrewKennedyTree =
     type Node = string * float

@@ -6,9 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="simpleTreeDisplay.fs" />
         <Compile Include="AndrewKennedyTranslation.fs" />
-        <Compile Include="Exercise 1.fs" />
         <Compile Include="Driver.fs" />
     </ItemGroup>
 
