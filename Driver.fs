@@ -20,11 +20,8 @@ module Driver =
           Node("B", [Node("D", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", [])]); 
           Node("F", [Node("F1", []); Node("F2", [])]); 
           Node("G", [Node("H", []); Node("I", []); Node("J", [])])])
+        postScriptWrapper testTree "test"
 
-        let (posTree, extents) = designTree (testTree)
-        let postScript = (postScriptString posTree extents)
-        //let posTree = designTree (generate 2 10)
-        File.WriteAllText (@".\test.ps", postScript) |> ignore
         let testAst = P(
           [VarDec(ITyp, "x")],
           [

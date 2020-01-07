@@ -1,4 +1,7 @@
 
+# Ignore ps files
+*.ps
+
 # Created by https://www.gitignore.io/api/fsharp,visualstudio
 # Edit at https://www.gitignore.io/?templates=fsharp,visualstudio
 
