@@ -7,6 +7,14 @@ open TreeGenerator
 open AST
 
 module Driver =
+    // Taken from https://en.wikibooks.org/wiki/F_Sharp_Programming/Higher_Order_Functions#A_Timer_Function
+    let duration f = 
+        let timer = new System.Diagnostics.Stopwatch()
+        timer.Start()
+        let returnValue = f()
+        printfn "Elapsed Time: %i" timer.ElapsedMilliseconds
+        returnValue
+
     [<EntryPoint>]
     let main argv =
         let postScriptWrapper (tree: 'a Tree) (filename: string) = 
@@ -20,7 +28,7 @@ module Driver =
           Node("B", [Node("D", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", [])]); 
           Node("F", [Node("F1", []); Node("F2", [])]); 
           Node("G", [Node("H", []); Node("I", []); Node("J", [])])])
-        postScriptWrapper (generate 10 10 1) "test"
+        //postScriptWrapper (generate 10 10 1) "test"
 
         let testAst = P(
           [VarDec(ITyp, "x")],
@@ -29,7 +37,7 @@ module Driver =
             PrintLn(Access(AVar("x")))
           ]
         )
-        postScriptWrapperAst testAst "simpleAst"
+        //postScriptWrapperAst testAst "simpleAst"
 
         let sampleAst = P(
             [VarDec(ITyp, "y"); VarDec(ITyp, "x")],
@@ -40,17 +48,20 @@ module Driver =
                 ]
             ))]
         )
-        postScriptWrapperAst sampleAst "GuardedCommandAst"
+        //postScriptWrapperAst sampleAst "GuardedCommandAst"
+
+        let (postree, extents) = designTree (generate 200 200 10)
+
+        // Warm up to ensure fairness in runs
+        (postScriptStringBuilder postree extents) |> ignore
+
+        printfn "Timing string builder"
+        duration (fun() -> (postScriptStringBuilder postree extents) |> ignore)
+
+        printfn "Timing string concat"
+        duration (fun() -> (postScriptStringConcat postree extents) |> ignore)
+
+        printfn "Timing string plus"
+        duration (fun() -> (postScriptStringPlus postree extents) |> ignore)
 
         0
-
-
-
-(* Factorial
-GC code:
-
-y:=1;
-do x>0 -> y:=x*y;
-          x:=x-1
-od
-*)
