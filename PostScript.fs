@@ -9,11 +9,20 @@ module PostScript =
     let factor = 30.0
     let textSize = 10.0
 
+    let rec range (mi:float) (ma:float) (ex:Extent) : float*float =
+        match ex with
+        | [] -> (mi,ma)
+        | (l,r)::tail -> let a = (min l mi)
+                         let b = (max r ma)
+                         range a b tail
+
     let postScript (tree: 'a PosTree) (extent: Extent) (strFunc: string -> unit): unit = 
-        let (f, t) =
+        let (f, t) = range 0.0 0.0 extent
+            (*
             extent
             |> List.rev
             |> List.head
+            *)
 
         let width = int (abs (t - f) * factor) + 30
         let height = extent.Length * int factor + 30
