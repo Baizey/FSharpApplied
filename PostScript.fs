@@ -94,7 +94,7 @@ module PostScript =
             | _  -> t + drawInner children (floor (x + pos * factor)) (floor (y - factor))
         let stringTree = draw tree 0.0 0.0 true
         output + stringTree + "stroke\nshowpage"
-(*
+
     let postScriptStringConcat (tree: 'a PosTree) (extent: Extent) =
         let (f, t) =
             extent
@@ -117,27 +117,47 @@ module PostScript =
                 | PosNode((label, pos), children) :: tail ->
                     seq
                         { yield! draw (PosNode((label, pos), children)) x y false
-                            yield! drawInner tail x y
-                                }
+                          yield! drawInner tail x y
+                        }
             let t = match isRoot with
-                    | true ->
-                                string (int (x + pos * factor)) + " " + string (int (y - factor)) + " moveto\n ("  +
-                                label.ToString() + ") dup stringwidth pop 2 div neg 0 rmoveto show\n"
+                    | true ->   seq{yield string (int (x + pos * factor))
+                                    yield " " 
+                                    yield string (int (y - factor)) 
+                                    yield " moveto\n (" 
+                                    yield label.ToString() 
+                                    yield ") dup stringwidth pop 2 div neg 0 rmoveto show\n"}
 
-                    | false ->
-                                string (int x) + " " + string (int (y - halfTextSize)) + " moveto\n"  +
-                                string (int x) + " " + string (int (y - halfFactor)) + " lineto\n" +
-                                string (int (x + pos * factor)) + " " + string (int (y - halfFactor)) + " lineto\n" +
-                                string (int (x + pos * factor)) + " " + string (int (y - factor + textSize)) + " lineto\n" +
-                                string (int (x + pos * factor)) + " " + string (int (y - factor)) + " moveto\n"  +
-                                " (" + label.ToString() + ") dup stringwidth pop 2 div neg 0 rmoveto show\n"
+                    | false ->  seq{yield string (int x) 
+                                    yield " " 
+                                    yield string (int (y - halfTextSize)) 
+                                    yield " moveto\n"  
+                                    yield string (int x) 
+                                    yield " " 
+                                    yield string (int (y - halfFactor)) 
+                                    yield " lineto\n" 
+                                    yield string (int (x + pos * factor)) 
+                                    yield " " 
+                                    yield string (int (y - halfFactor)) 
+                                    yield " lineto\n" 
+                                    yield string (int (x + pos * factor)) 
+                                    yield " " 
+                                    yield string (int (y - factor + textSize)) 
+                                    yield " lineto\n" 
+                                    yield string (int (x + pos * factor)) 
+                                    yield " " + string (int (y - factor)) 
+                                    yield " moveto\n"  
+                                    yield " (" + label.ToString() 
+                                    yield ") dup stringwidth pop 2 div neg 0 rmoveto show\n"}
 
             match children with
             | [] -> t
-            | _  -> t + drawInner children (floor (x + pos * factor)) (floor (y - factor))
+            | _  -> seq{ yield! t 
+                         yield! drawInner children (floor (x + pos * factor)) (floor (y - factor))
+                       }
         let stringTree = draw tree 0.0 0.0 true
-        output + stringTree + "stroke\nshowpage"
-*)
+        let result = String.concat "" stringTree
+        output + result + "stroke\nshowpage"
+
 (*
     let postScriptStringConcat (tree: 'a PosTree) =
         let intro = "<</PageSize[1400 1000]/ImagingBBox null>> setpagedevice\n" + "1 1 scale\n" + "700 999 translate\n" + "newpath\n" + "/Times-Roman findfont 10 scalefont setfont\n"
@@ -171,6 +191,7 @@ module PostScript =
 *)
 
     let postScriptSaveResult (tree: 'a PosTree) (extent: Extent) (filepath: string) =
-        let result = postScriptString tree extent
-        File.WriteAllText(@".\" + filepath, result)
+        let result = postScriptStringConcat tree extent
+        let abspath = Path.Combine(__SOURCE_DIRECTORY__,filepath)
+        File.WriteAllText(abspath + ".ps", result)
 
