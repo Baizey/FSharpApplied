@@ -20,7 +20,7 @@ module Driver =
           Node("B", [Node("D", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", [])]); 
           Node("F", [Node("F1", []); Node("F2", [])]); 
           Node("G", [Node("H", []); Node("I", []); Node("J", [])])])
-        postScriptWrapper testTree "test"
+        postScriptWrapper (generate 10 10 1) "test"
 
         let testAst = P(
           [VarDec(ITyp, "x")],
