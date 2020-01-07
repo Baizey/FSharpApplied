@@ -72,10 +72,10 @@ module PostScript =
         output
 
     let postScriptStringConcat (tree: 'a PosTree) (extent: Extent) =
-        let mutable seq: string seq = Seq.empty
-        let strFunc (str: string) = seq <- Seq.append seq [str]
+        let mutable strList: string list = List.empty
+        let strFunc (str: string) = strList <- str :: strList
         postScript tree extent strFunc
-        String.concat "" seq
+        String.concat "" (List.rev strList)
 
 
 (*
