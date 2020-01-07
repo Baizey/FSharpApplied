@@ -64,7 +64,7 @@ module Driver =
             [
                 VarDec(ITyp,"res");
                 FunDec(
-                    Some(ITyp),
+                    Some(FTyp([ITyp],Some(ITyp))),
                     "fact",
                     [VarDec(ITyp,"n")],
                     Block(
