@@ -7,6 +7,19 @@ module TreeGenerator =
 
     let rng = new Random()
 
+    //http://www.fssnip.net/7UY/title/Random-string-generator
+    let generateLabel n =
+        let r = Random()
+
+        let chars =
+            Array.concat
+                ([ [| 'a' .. 'z' |]
+                   [| 'A' .. 'Z' |]
+                   [| '0' .. '9' |] ])
+
+        let sz = Array.length chars
+        String(Array.init n (fun _ -> chars.[r.Next sz]))
+
     // Source: http://www.fssnip.net/mr/title/Array-Shuffle
     let Shuffle(org: _ []) =
         let arr = Array.copy org
@@ -35,7 +48,7 @@ module TreeGenerator =
         let rec generateInner (width: int) (height: int): string Tree list =
             match height with
             | 0 ->
-                [ for _ in 0 .. width -> Node("A", []) ]
+                [ for _ in 0 .. width -> Node(generateLabel 5, []) ]
             | _ ->
                 let chunks =
                     (generateInner width (height - 1)
@@ -46,5 +59,5 @@ module TreeGenerator =
                 |> List.toArray
                 |> Shuffle
                 |> Array.toList
-                |> List.map (fun item -> Node("A", item))
+                |> List.map (fun item -> Node(generateLabel 5, item))
         Node("Root", generateInner width height)
