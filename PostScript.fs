@@ -105,11 +105,14 @@ module PostScript =
         let rootSpot = int ((float width / 2.0) - ((f + t) / 2.0) * factor)
         let halfFactor = factor / 2.0
         let halfTextSize = textSize / 2.0
-
-        let size = "<</PageSize[" + string width+ " " + string height + "]/ImagingBBox null>> setpagedevice\n"
-
-        let output = size + "1 1 scale\n"+ string rootSpot + " " + string (height - 1) + " translate\nnewpath\n/Times-Roman findfont "+ string (int (textSize)) + " scalefont setfont\n"
-
+        
+        let output = seq{yield sprintf "<</PageSize[%d %d]/ImagingBBox null>> setpagedevice\n" width height
+                         yield "1 1 scale\n"
+                         yield sprintf "%d %d translate\n" rootSpot (height - 1)
+                         yield "newpath\n"
+                         yield sprintf "/Times-Roman findfont %d scalefont setfont\n" (int textSize)
+                        }
+              
         let rec draw (PosNode((label, pos), children): 'a PosTree) (x: float) (y: float) (isRoot: bool): seq<string> =
             let rec drawInner (children: 'a PosTree list) (x: float) (y: float) =
                 match children with
@@ -120,43 +123,26 @@ module PostScript =
                           yield! drawInner tail x y
                         }
             let t = match isRoot with
-                    | true ->   seq{yield string (int (x + pos * factor))
-                                    yield " " 
-                                    yield string (int (y - factor)) 
-                                    yield " moveto\n (" 
-                                    yield label.ToString() 
-                                    yield ") dup stringwidth pop 2 div neg 0 rmoveto show\n"}
+                    | true ->   seq{yield sprintf "%d %d moveto\n" (int (x + pos * factor)) (int (y - factor))
+                                    yield sprintf " (%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (label.ToString())}
 
-                    | false ->  seq{yield string (int x) 
-                                    yield " " 
-                                    yield string (int (y - halfTextSize)) 
-                                    yield " moveto\n"  
-                                    yield string (int x) 
-                                    yield " " 
-                                    yield string (int (y - halfFactor)) 
-                                    yield " lineto\n" 
-                                    yield string (int (x + pos * factor)) 
-                                    yield " " 
-                                    yield string (int (y - halfFactor)) 
-                                    yield " lineto\n" 
-                                    yield string (int (x + pos * factor)) 
-                                    yield " " 
-                                    yield string (int (y - factor + textSize)) 
-                                    yield " lineto\n" 
-                                    yield string (int (x + pos * factor)) 
-                                    yield " " + string (int (y - factor)) 
-                                    yield " moveto\n"  
-                                    yield " (" + label.ToString() 
-                                    yield ") dup stringwidth pop 2 div neg 0 rmoveto show\n"}
+                    | false ->  seq{yield sprintf "%d %d moveto\n" (int x) (int (y - halfTextSize))
+                                    yield sprintf "%d %d lineto\n" (int x) (int (y - halfFactor))
+                                    yield sprintf "%d %d lineto\n" (int (x + pos * factor)) (int (y - halfFactor))
+                                    yield sprintf "%d %d lineto\n" (int (x + pos * factor)) (int (y - factor + textSize))
+                                    yield sprintf "%d %d moveto\n" (int (x + pos * factor)) (int (y - factor))
+                                    yield sprintf " (%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (label.ToString())}
 
             match children with
             | [] -> t
             | _  -> seq{ yield! t 
                          yield! drawInner children (floor (x + pos * factor)) (floor (y - factor))
                        }
-        let stringTree = draw tree 0.0 0.0 true
+        let stringTree = seq{yield! output
+                             yield! draw tree 0.0 0.0 true
+                            }
         let result = String.concat "" stringTree
-        output + result + "stroke\nshowpage"
+        result + "stroke\nshowpage"
 
 (*
     let postScriptStringConcat (tree: 'a PosTree) =
