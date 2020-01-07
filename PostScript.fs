@@ -1,5 +1,6 @@
 ﻿namespace Project1
 
+open System.IO
 open System.Text
 open AndrewKennedyTree
 
@@ -85,3 +86,6 @@ module PostScript =
 
         intro + drawElement tree 0.0 (-1.0) + "stroke\nshowpage"
 
+    let postScriptSaveResult (tree: 'a PosTree) (extent: Extent) (filepath: string) =
+        let result = postScriptString tree extent
+        File.WriteAllText(@".\" + filepath, result)
