@@ -5,6 +5,9 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+      <NoWarn>0058;</NoWarn>
+    </PropertyGroup>
     <ItemGroup>
         <Compile Include="AndrewKennedyTranslation.fs" />
         <Compile Include="AST.fs" />
