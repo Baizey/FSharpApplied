@@ -9,6 +9,53 @@ module PostScript =
     let factor = 30.0
     let textSize = 10.0
 
+    let postScript (tree: 'a PosTree) (extent: Extent) (strFunc: string -> unit): unit = 
+        let (f, t) =
+            extent
+            |> List.rev
+            |> List.head
+
+        let width = int (abs (t - f) * factor) + 30
+        let height = extent.Length * int factor + 30
+        let rootSpot = int ((float width / 2.0) - ((f + t) / 2.0) * factor)
+        let halfFactor = factor / 2.0
+        let halfTextSize = textSize / 2.0
+
+        strFunc (sprintf "<</PageSize[%d %d]/ImagingBBox null>> setpagedevice\n" width height)
+        strFunc ("1 1 scale\n" + sprintf "%d %d translate\n" rootSpot (height - 1) + "newpath\n")
+        strFunc (sprintf "/Times-Roman findfont %d scalefont setfont" (int textSize))
+
+        let rec draw (PosNode((label, pos), children): 'a PosTree) (x: float) (y: float) (isRoot: bool): int =
+            let rec drawInner (children: 'a PosTree list) (x: float) (y: float) =
+                match children with
+                | [] -> 0
+                | PosNode((label, pos), children) :: tail ->
+                    draw (PosNode((label, pos), children)) x y false |> ignore
+                    drawInner tail x y
+            match isRoot with
+            | true ->
+                strFunc (sprintf "%d %d moveto\n" (int (x + pos * factor)) (int (y - factor)))
+                strFunc (sprintf " (%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (label.ToString()))
+            | false ->
+                strFunc (sprintf "%d %d moveto\n" (int x) (int (y - halfTextSize)))
+                strFunc (sprintf "%d %d lineto\n" (int x) (int (y - halfFactor)))
+                strFunc (sprintf "%d %d lineto\n" (int (x + pos * factor)) (int (y - halfFactor)))
+                strFunc (sprintf "%d %d lineto\n" (int (x + pos * factor)) (int (y - factor + textSize)))
+                strFunc (sprintf "%d %d moveto\n" (int (x + pos * factor)) (int (y - factor)))
+                strFunc (sprintf " (%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (label.ToString()))
+            match children with
+            | [] -> 0
+            | _ ->
+                drawInner children (floor (x + pos * factor)) (floor (y - factor))
+        draw tree 0.0 0.0 true |> ignore
+        strFunc "stroke\nshowpage"
+
+    let postScriptStrBldTest (tree: 'a PosTree) (extent: Extent): string = 
+        let strBuilder = StringBuilder()
+        let strFunc (str: string) = strBuilder.Append(str) |> ignore
+        postScript tree extent strFunc
+        strBuilder.ToString()
+
     let postScriptString (tree: 'a PosTree) (extent: Extent) =
         let (f, t) =
             extent
