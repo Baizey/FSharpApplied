@@ -54,7 +54,90 @@ module PostScript =
         draw tree 0.0 0.0 true |> ignore
         output.AppendLine("stroke").AppendLine("showpage").ToString()
 
+    let postScriptStringPlus (tree: 'a PosTree) (extent: Extent) =
+        let (f, t) =
+            extent
+            |> List.rev
+            |> List.head
+        let width = int (abs (t - f) * factor) + 30
+        let height = extent.Length * int factor + 30
+        let rootSpot = int ((float width / 2.0) - ((f + t) / 2.0) * factor)
+        let halfFactor = factor / 2.0
+        let halfTextSize = textSize / 2.0
 
+        let size = "<</PageSize[" + string width+ " " + string height + "]/ImagingBBox null>> setpagedevice\n"
+
+        let output = size + "1 1 scale\n"+ string rootSpot + " " + string (height - 1) + " translate\nnewpath\n/Times-Roman findfont "+ string (int (textSize)) + " scalefont setfont\n"
+
+        let rec draw (PosNode((label, pos), children): 'a PosTree) (x: float) (y: float) (isRoot: bool): string =
+            let rec drawInner (children: 'a PosTree list) (x: float) (y: float) =
+                match children with
+                | [] -> ""
+                | PosNode((label, pos), children) :: tail ->
+                    draw (PosNode((label, pos), children)) x y false + drawInner tail x y
+            let t = match isRoot with
+                    | true ->
+                                string (int (x + pos * factor)) + " " + string (int (y - factor)) + " moveto\n ("  +
+                                label.ToString() + ") dup stringwidth pop 2 div neg 0 rmoveto show\n"
+
+                    | false ->
+                                string (int x) + " " + string (int (y - halfTextSize)) + " moveto\n"  +
+                                string (int x) + " " + string (int (y - halfFactor)) + " lineto\n" +
+                                string (int (x + pos * factor)) + " " + string (int (y - halfFactor)) + " lineto\n" +
+                                string (int (x + pos * factor)) + " " + string (int (y - factor + textSize)) + " lineto\n" +
+                                string (int (x + pos * factor)) + " " + string (int (y - factor)) + " moveto\n"  +
+                                " (" + label.ToString() + ") dup stringwidth pop 2 div neg 0 rmoveto show\n"
+
+            match children with
+            | [] -> t
+            | _  -> t + drawInner children (floor (x + pos * factor)) (floor (y - factor))
+        let stringTree = draw tree 0.0 0.0 true
+        output + stringTree + "stroke\nshowpage"
+(*
+    let postScriptStringConcat (tree: 'a PosTree) (extent: Extent) =
+        let (f, t) =
+            extent
+            |> List.rev
+            |> List.head
+        let width = int (abs (t - f) * factor) + 30
+        let height = extent.Length * int factor + 30
+        let rootSpot = int ((float width / 2.0) - ((f + t) / 2.0) * factor)
+        let halfFactor = factor / 2.0
+        let halfTextSize = textSize / 2.0
+
+        let size = "<</PageSize[" + string width+ " " + string height + "]/ImagingBBox null>> setpagedevice\n"
+
+        let output = size + "1 1 scale\n"+ string rootSpot + " " + string (height - 1) + " translate\nnewpath\n/Times-Roman findfont "+ string (int (textSize)) + " scalefont setfont\n"
+
+        let rec draw (PosNode((label, pos), children): 'a PosTree) (x: float) (y: float) (isRoot: bool): seq<string> =
+            let rec drawInner (children: 'a PosTree list) (x: float) (y: float) =
+                match children with
+                | [] -> Seq.empty
+                | PosNode((label, pos), children) :: tail ->
+                    seq
+                        { yield! draw (PosNode((label, pos), children)) x y false
+                            yield! drawInner tail x y
+                                }
+            let t = match isRoot with
+                    | true ->
+                                string (int (x + pos * factor)) + " " + string (int (y - factor)) + " moveto\n ("  +
+                                label.ToString() + ") dup stringwidth pop 2 div neg 0 rmoveto show\n"
+
+                    | false ->
+                                string (int x) + " " + string (int (y - halfTextSize)) + " moveto\n"  +
+                                string (int x) + " " + string (int (y - halfFactor)) + " lineto\n" +
+                                string (int (x + pos * factor)) + " " + string (int (y - halfFactor)) + " lineto\n" +
+                                string (int (x + pos * factor)) + " " + string (int (y - factor + textSize)) + " lineto\n" +
+                                string (int (x + pos * factor)) + " " + string (int (y - factor)) + " moveto\n"  +
+                                " (" + label.ToString() + ") dup stringwidth pop 2 div neg 0 rmoveto show\n"
+
+            match children with
+            | [] -> t
+            | _  -> t + drawInner children (floor (x + pos * factor)) (floor (y - factor))
+        let stringTree = draw tree 0.0 0.0 true
+        output + stringTree + "stroke\nshowpage"
+*)
+(*
     let postScriptStringConcat (tree: 'a PosTree) =
         let intro = "<</PageSize[1400 1000]/ImagingBBox null>> setpagedevice\n" + "1 1 scale\n" + "700 999 translate\n" + "newpath\n" + "/Times-Roman findfont 10 scalefont setfont\n"
         // TODO : Make more dynamic
@@ -84,4 +167,4 @@ module PostScript =
                       moveTo (x+pos) (y) + lineTo (x+pos) (y-1.0) + drawBranchDown t x y
 
         intro + drawElement tree 0.0 (-1.0) + "stroke\nshowpage"
-
+*)
