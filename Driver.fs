@@ -50,6 +50,16 @@ module Driver =
         )
         //postScriptWrapperAst sampleAst "GuardedCommandAst"
 
+        let sampleEX6 = P(
+            [VarDec(ITyp,"x")],
+            [Ass(AVar("x"),N(3));
+             Alt(GC(
+                [(Apply("=",[Access(AVar("x"));N(0)]),[PrintLn(Access(AVar("x")))]);
+                 (Apply("=",[Access(AVar("x"));N(0)]),[PrintLn(N(10))])]));
+            PrintLn(Access(AVar("x")))])
+
+        postScriptWrapperAst sampleEX6 "EX6Ast"
+        (*
         let (postree, extents) = designTree (generate 200 200 10)
 
         // Warm up to ensure fairness in runs
@@ -63,5 +73,5 @@ module Driver =
 
         printfn "Timing string plus"
         duration (fun() -> (postScriptStringPlus postree extents) |> ignore)
-
+        *)
         0
