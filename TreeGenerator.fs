@@ -7,6 +7,7 @@ module TreeGenerator =
 
     let rng = new Random()
 
+    // Source: http://www.fssnip.net/mr/title/Array-Shuffle
     let Shuffle(org: _ []) =
         let arr = Array.copy org
         let max = (arr.Length - 1)
