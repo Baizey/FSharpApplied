@@ -23,7 +23,7 @@ module PostScript =
 
         strFunc (sprintf "<</PageSize[%d %d]/ImagingBBox null>> setpagedevice\n" width height)
         strFunc ("1 1 scale\n" + sprintf "%d %d translate\n" rootSpot (height - 1) + "newpath\n")
-        strFunc (sprintf "/Times-Roman findfont %d scalefont setfont" (int textSize))
+        strFunc (sprintf "/Times-Roman findfont %d scalefont setfont\n" (int textSize))
 
         let rec draw (PosNode((label, pos), children): 'a PosTree) (x: float) (y: float) (isRoot: bool): int =
             let rec drawInner (children: 'a PosTree list) (x: float) (y: float) =
