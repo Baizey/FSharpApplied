@@ -10,9 +10,6 @@ module PostScript =
     let heightFactor = 30.0
     let textSize = 10.0
 
-    let formatLabel (label: 'b): string =
-        label.ToString()
-
     let rec range (mi: float) (ma: float) (ex: Extent): float * float =
         match ex with
         | [] -> (mi, ma)
@@ -63,14 +60,14 @@ module PostScript =
             match isRoot with
             | true ->
                 strFunc (sprintf "%d %d moveto\n" (int (x + pos * widthFactor)) (int (y - heightFactor)))
-                strFunc (sprintf " (%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (formatLabel label))
+                strFunc (sprintf " (%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (label.ToString()))
             | false ->
                 strFunc (sprintf "%d %d moveto\n" (int x) (int (y - halfTextSize)))
                 strFunc (sprintf "%d %d lineto\n" (int x) (int (y - (heightFactor / 2.0))))
                 strFunc (sprintf "%d %d lineto\n" (int (x + pos * widthFactor)) (int (y - (heightFactor / 2.0))))
                 strFunc (sprintf "%d %d lineto\n" (int (x + pos * widthFactor)) (int (y - heightFactor + textSize)))
                 strFunc (sprintf "%d %d moveto\n" (int (x + pos * widthFactor)) (int (y - heightFactor)))
-                strFunc (sprintf " (%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (formatLabel label))
+                strFunc (sprintf " (%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (label.ToString()))
             match children with
             | [] -> 0
             | _ ->
