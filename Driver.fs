@@ -59,6 +59,41 @@ module Driver =
             PrintLn(Access(AVar("x")))])
 
         postScriptWrapperAst sampleEX6 "EX6Ast"
+
+        let sampleFact = P(
+            [
+                VarDec(ITyp,"res");
+                FunDec(
+                    Some(ITyp),
+                    "fact",
+                    [VarDec(ITyp,"n")],
+                    Block(
+                        [VarDec(ITyp,"x");VarDec(ITyp,"y")],
+                        [
+                            Ass(AVar("x"),Access(AVar("n")));
+                            Ass(AVar("y"),N(1));
+                            Do(GC(
+                                [
+                                    Apply("!", [Apply("=",[Access(AVar("x"));N(0)])]),
+                                    [
+                                    Ass(AVar("y"),Apply("*",
+                                        [Access(AVar("x"));Access(AVar("y"))]));
+                                    Ass(AVar("x"),Apply("-",
+                                        [Access(AVar("x"));N(1)]))
+                                    ]
+                                ]));
+                            Return(Some(Access(AVar("y"))))
+                        ])
+                )
+            ],
+            [
+                Ass(AVar("res"),Apply("fact",[N(4)]));
+                PrintLn(Access(AVar("res")))
+            ]
+        )
+
+        postScriptWrapperAst sampleFact "FactAST"
+
         (*
         let (postree, extents) = designTree (generate 200 200 10)
 
