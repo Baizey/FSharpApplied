@@ -56,7 +56,7 @@ module PostScript =
         postScript tree extent strFunc
         strBuilder.ToString()
 
-    let postScriptStringPlus (tree: 'a PosTree) (extent: Extent) = 
+    let postScriptStringPlus (tree: 'a PosTree) (extent: Extent) =  
         let mutable output = ""
         let strFunc (str: string) = output <- output + str
         postScript tree extent strFunc
