@@ -59,7 +59,7 @@ module AST =
       | B(b) -> Node("B", [Node(string b, [])])
       | Access(acc) -> Node("Access", [convertAccess acc])
       | Addr(acc) -> Node("Addr", [convertAccess acc])
-      | Apply(str, expl) -> Node("Apply " + str, [convertExpList expl])
+      | Apply(str, expl) -> Node("Apply", [Node(str, []); convertExpList expl])
     and convertExpList (expl: Exp list) = Node("ExpList", List.map (fun x -> convertExp x) expl)
 
     and convertAccess (acc: Access) =
