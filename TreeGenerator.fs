@@ -4,9 +4,6 @@ open System
 open AndrewKennedyTree
 
 module TreeGenerator =
-
-    let rng = Random()
-
     // Source: http://www.fssnip.net/7UY/title/Random-string-generator
     let generateLabel n =
         let r = Random()
@@ -22,6 +19,7 @@ module TreeGenerator =
 
     // Source: http://www.fssnip.net/mr/title/Array-Shuffle
     let Shuffle(org: _ []) =
+        let rng = Random();
         let arr = Array.copy org
         let max = (arr.Length - 1)
 
