@@ -125,7 +125,10 @@ module PostScript =
         intro + drawElement tree 0.0 (-1.0) + "stroke\nshowpage"
 *)
 
+    let postScriptSaveResultString (psString: string) (filepath: string) =
+        let abspath = Path.Combine(__SOURCE_DIRECTORY__, filepath)
+        File.WriteAllText(abspath + ".ps", psString)
+
     let postScriptSaveResult (tree: 'a PosTree) (extent: Extent) (filepath: string) =
         let result = postScriptStringConcat tree extent
-        let abspath = Path.Combine(__SOURCE_DIRECTORY__, filepath)
-        File.WriteAllText(abspath + ".ps", result)
+        postScriptSaveResultString result filepath
