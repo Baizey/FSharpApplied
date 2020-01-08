@@ -33,7 +33,7 @@ module PostScript =
                 max (label.ToString().Length) (findLongestLabelInChildren children)
 
         let (f, t) = range 0.0 0.0 extent
-        let widthFactor = float (findLongestLabel tree) * 7.0
+        let widthFactor = float (findLongestLabel tree) * 9.0
         let width = int (abs (t - f) * widthFactor) + int widthFactor
         let height = extent.Length * int heightFactor + int heightFactor
         let rootSpot = int ((float width / 2.0) - ((f + t) / 2.0) * widthFactor)
