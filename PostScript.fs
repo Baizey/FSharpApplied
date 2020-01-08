@@ -50,13 +50,13 @@ module PostScript =
              + "newpath\n")
         strFunc (sprintf "/Times-Roman findfont %d scalefont setfont\n" (int textSize))
 
-        let rec draw (PosNode((label, pos), children): 'a PosTree) (x: float) (y: float) (isRoot: bool): int =
-            let rec drawInner (children: 'a PosTree list) (x: float) (y: float) =
+        let rec draw (PosNode((label, pos), children): 'a PosTree) (x: float) (y: float) (isRoot: bool): unit =
+            let rec drawInner (children: 'a PosTree list) (x: float) (y: float): unit =
                 match children with
-                | [] -> 0
                 | PosNode((label, pos), children) :: tail ->
-                    draw (PosNode((label, pos), children)) x y false |> ignore
+                    draw (PosNode((label, pos), children)) x y false
                     drawInner tail x y
+                | _ -> ()
             match isRoot with
             | true ->
                 strFunc (sprintf "%d %d moveto\n" (int (x + pos * widthFactor)) (int (y - heightFactor)))
@@ -68,11 +68,10 @@ module PostScript =
                 strFunc (sprintf "%d %d lineto\n" (int (x + pos * widthFactor)) (int (y - heightFactor + textSize)))
                 strFunc (sprintf "%d %d moveto\n" (int (x + pos * widthFactor)) (int (y - heightFactor)))
                 strFunc (sprintf " (%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (label.ToString()))
-            match children with
-            | [] -> 0
-            | _ ->
+            if children.Length > 0 then
                 drawInner children (floor (x + pos * widthFactor)) (floor (y - heightFactor))
-        draw tree 0.0 0.0 true |> ignore
+                
+        draw tree 0.0 0.0 true
         strFunc "stroke\nshowpage"
 
     let postScriptStringBuilder (tree: 'a PosTree) (extent: Extent): string =
