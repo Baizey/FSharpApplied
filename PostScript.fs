@@ -126,7 +126,10 @@ module PostScript =
 *)
 
     let postScriptSaveResultString (psString: string) (filepath: string) =
-        let abspath = Path.Combine(__SOURCE_DIRECTORY__, filepath)
+        
+        let postscriptPath = Path.Combine(__SOURCE_DIRECTORY__, "postscript")
+        Directory.CreateDirectory(postscriptPath) |> ignore
+        let abspath = Path.Combine(postscriptPath, filepath)
         File.WriteAllText(abspath + ".ps", psString)
 
     let postScriptSaveResult (tree: 'a PosTree) (extent: Extent) (filepath: string) =
