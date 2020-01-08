@@ -28,18 +28,20 @@ module Driver =
           Node("B", [Node("D", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", []); Node("E", [])]); 
           Node("F", [Node("F1", []); Node("F2", [])]); 
           Node("G", [Node("H", []); Node("I", []); Node("J", [])])])
-        //postScriptWrapper (generate 10 10 1) "test"
+        postScriptWrapper testTree "simpleTree"
+        
+        postScriptWrapper (generate 10 10 3) "randomTree"
 
-        let testAst = P(
+        let simpleAst = P(
           [VarDec(ITyp, "x")],
           [
             Ass(AVar("x"), N(5));
             PrintLn(Access(AVar("x")))
           ]
         )
-        //postScriptWrapperAst testAst "simpleAst"
+        postScriptWrapperAst simpleAst "simpleAst"
 
-        let sampleAst = P(
+        let gcAst = P(
             [VarDec(ITyp, "y"); VarDec(ITyp, "x")],
             [Do(GC(
                 [
@@ -48,7 +50,7 @@ module Driver =
                 ]
             ))]
         )
-        //postScriptWrapperAst sampleAst "GuardedCommandAst"
+        postScriptWrapperAst gcAst "GuardedCommandAst"
 
         let sampleEX6 = P(
             [VarDec(ITyp,"x")],
@@ -57,7 +59,6 @@ module Driver =
                 [(Apply("=",[Access(AVar("x"));N(0)]),[PrintLn(Access(AVar("x")))]);
                  (Apply("=",[Access(AVar("x"));N(0)]),[PrintLn(N(10))])]));
             PrintLn(Access(AVar("x")))])
-
         postScriptWrapperAst sampleEX6 "EX6Ast"
 
         let sampleFact = P(
@@ -91,22 +92,24 @@ module Driver =
                 PrintLn(Access(AVar("res")))
             ]
         )
-
         postScriptWrapperAst sampleFact "FactAST"
 
-        (*
-        let (postree, extents) = designTree (generate 200 200 10)
+        
+        // Somewhat large randomly generated tree for performance testing
+        // WARNING! Be ware that upping these values will make the (+) part
+        // go very slow
+        let (postree, extents) = designTree (generate 100 100 10)
 
         // Warm up to ensure fairness in runs
         (postScriptStringBuilder postree extents) |> ignore
 
         printfn "Timing string builder"
-        duration (fun() -> (postScriptStringBuilder postree extents) |> ignore)
+        postScriptSaveResultString (duration (fun() -> postScriptStringBuilder postree extents)) "timingTest"
 
         printfn "Timing string concat"
         duration (fun() -> (postScriptStringConcat postree extents) |> ignore)
 
         printfn "Timing string plus"
         duration (fun() -> (postScriptStringPlus postree extents) |> ignore)
-        *)
+        
         0
