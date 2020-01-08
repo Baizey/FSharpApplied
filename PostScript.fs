@@ -33,11 +33,6 @@ module PostScript =
                 max (label.ToString().Length) (findLongestLabelInChildren children)
 
         let (f, t) = range 0.0 0.0 extent
-        (*
-            extent
-            |> List.rev
-            |> List.head
-            *)
         let widthFactor = float (findLongestLabel tree) * 7.0
         let width = int (abs (t - f) * widthFactor) + int widthFactor
         let height = extent.Length * int heightFactor + int heightFactor
@@ -68,9 +63,8 @@ module PostScript =
                 strFunc (sprintf "%d %d lineto\n" (int (x + pos * widthFactor)) (int (y - heightFactor + textSize)))
                 strFunc (sprintf "%d %d moveto\n" (int (x + pos * widthFactor)) (int (y - heightFactor)))
                 strFunc (sprintf " (%s) dup stringwidth pop 2 div neg 0 rmoveto show\n" (label.ToString()))
-            if children.Length > 0 then
-                drawInner children (floor (x + pos * widthFactor)) (floor (y - heightFactor))
-                
+            if children.Length > 0 then drawInner children (floor (x + pos * widthFactor)) (floor (y - heightFactor))
+
         draw tree 0.0 0.0 true
         strFunc "stroke\nshowpage"
 
