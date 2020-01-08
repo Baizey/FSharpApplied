@@ -5,9 +5,9 @@ open AndrewKennedyTree
 
 module TreeGenerator =
 
-    let rng = new Random()
+    let rng = Random()
 
-    //http://www.fssnip.net/7UY/title/Random-string-generator
+    // Source: http://www.fssnip.net/7UY/title/Random-string-generator
     let generateLabel n =
         let r = Random()
 
