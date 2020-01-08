@@ -87,7 +87,6 @@ module PostScript =
         String.concat "" (List.rev strList)
         
     let postScriptSaveResultString (psString: string) (filepath: string) =
-        
         let postscriptPath = Path.Combine(__SOURCE_DIRECTORY__, "postscript")
         Directory.CreateDirectory(postscriptPath) |> ignore
         let abspath = Path.Combine(postscriptPath, filepath)

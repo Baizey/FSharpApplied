@@ -1,6 +1,5 @@
 ﻿namespace Project1
 
-open System.IO
 open AndrewKennedyTree
 open PostScript
 open TreeGenerator
