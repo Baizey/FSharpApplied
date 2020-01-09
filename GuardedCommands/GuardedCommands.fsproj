@@ -12,31 +12,6 @@
 
 
     <ItemGroup>
-    <None Include="Examples\partition.gc" />
-    <None Include="Examples\Exa1.gc" />
-    <None Include="Examples\factCBV.gc" />
-    <None Include="Examples\factRec.gc" />
-    <None Include="Examples\A0.gc" />
-    <None Include="Examples\A1.gc" />
-    <None Include="Examples\A2.gc" />
-    <None Include="Examples\A3.gc" />
-    <None Include="Examples\A4.gc" />
-    <None Include="Examples\Swap.gc" />
-    <None Include="Examples\QuickSortV1.gc" />
-    <None Include="Examples\par1.gc" />
-    <None Include="Examples\factImpPTyp.gc" />
-    <None Include="Examples\QuickSortV2.gc" />
-    <None Include="Examples\par2.gc" />
-    <None Include="Examples\Ex0.gc" />
-    <None Include="Examples\Ex1.gc" />
-    <None Include="Examples\Ex2.gc" />
-    <None Include="Examples\Ex3.gc" />
-    <None Include="Examples\Ex4.gc" />
-    <None Include="Examples\Ex5.gc" />
-    <None Include="Examples\Ex6.gc" />
-    <None Include="Examples\Skip.gc" />
-    <None Include="Examples\Ex7.gc" />
-    <None Include="Examples\fact.gc" />
     <Compile Include="AST.fs" />
     <None Include="MachineDll\Machine.dll" />
     <None Include="MachineDll\virtualMachine.dll" />
