@@ -57,7 +57,9 @@ module TypeCheck =
                          | Ass(acc,e) -> if tcA gtenv ltenv acc = tcE gtenv ltenv e 
                                          then ()
                                          else failwith "illtyped assignment"                                
-
+                         | Alt(GC(l)) -> match (List.forall (fun (e,_) -> (tcE gtenv ltenv e = BTyp)) l) with
+                                         | true -> List.iter (fun (_,stms) -> List.iter (tcS gtenv ltenv) stms) l
+                                         | false -> failwith "Guard is not of type boolean"
                          | Block([],stms) -> List.iter (tcS gtenv ltenv) stms
                          | _              -> failwith "tcS: this statement is not supported yet"
 
