@@ -62,6 +62,7 @@ module TypeCheck =
         | Ass(acc, e) ->
             if tcA gtenv ltenv acc = tcExpr gtenv ltenv e then ()
             else failwith "illtyped assignment"
+        | Do(GC(l))
         | Alt(GC(l)) -> match (List.forall (fun (e,_) -> (tcExpr gtenv ltenv e = BType)) l) with
                                          | true -> List.iter (fun (_,stms) -> List.iter (tcStm gtenv ltenv) stms) l
                                          | false -> failwith "Guard is not of type boolean"
