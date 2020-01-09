@@ -12,7 +12,34 @@
 
 
     <ItemGroup>
+    <None Include="Examples\partition.gc" />
+    <None Include="Examples\Exa1.gc" />
+    <None Include="Examples\factCBV.gc" />
+    <None Include="Examples\factRec.gc" />
+    <None Include="Examples\A0.gc" />
+    <None Include="Examples\A1.gc" />
+    <None Include="Examples\A2.gc" />
+    <None Include="Examples\A3.gc" />
+    <None Include="Examples\A4.gc" />
+    <None Include="Examples\Swap.gc" />
+    <None Include="Examples\QuickSortV1.gc" />
+    <None Include="Examples\par1.gc" />
+    <None Include="Examples\factImpPTyp.gc" />
+    <None Include="Examples\QuickSortV2.gc" />
+    <None Include="Examples\par2.gc" />
+    <None Include="Examples\Ex0.gc" />
+    <None Include="Examples\Ex1.gc" />
+    <None Include="Examples\Ex2.gc" />
+    <None Include="Examples\Ex3.gc" />
+    <None Include="Examples\Ex4.gc" />
+    <None Include="Examples\Ex5.gc" />
+    <None Include="Examples\Ex6.gc" />
+    <None Include="Examples\Skip.gc" />
+    <None Include="Examples\Ex7.gc" />
+    <None Include="Examples\fact.gc" />
     <Compile Include="AST.fs" />
+    <None Include="MachineDll\Machine.dll" />
+    <None Include="MachineDll\virtualMachine.dll" />
     <None Include="Parser.fsy" />
     <None Include="Lexer.fsl" />
     <Compile Include="Parser.fs" />
@@ -23,29 +50,6 @@
     <Compile Include="Util.fs" />
     <None Include="Script.fsx" />
     <Content Include="README.txt" />
-    <None Include="Ex0.gc" />
-    <None Include="Ex1.gc" />
-    <None Include="Ex2.gc" />
-    <None Include="Ex3.gc" />
-    <None Include="Ex4.gc" />
-    <None Include="Ex5.gc" />
-    <None Include="Ex6.gc" />
-    <None Include="Skip.gc" />
-    <None Include="Ex7.gc" />
-    <None Include="fact.gc" />
-    <None Include="factCBV.gc" />
-    <None Include="factRec.gc" />
-    <None Include="A0.gc" />
-    <None Include="A1.gc" />
-    <None Include="A2.gc" />
-    <None Include="A3.gc" />
-    <None Include="A4.gc" />
-    <None Include="Swap.gc" />
-    <None Include="QuickSortV1.gc" />
-    <None Include="par1.gc" />
-    <None Include="factImpPTyp.gc" />
-    <None Include="QuickSortV2.gc" />
-    <None Include="par2.gc" />
     <None Include="packages.config" />
     <None Include="app.config" />
     </ItemGroup>
