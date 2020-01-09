@@ -17,10 +17,21 @@
         <Compile Include="PostScript.fs" />
         <Compile Include="TreeGenerator.fs" />
         <Compile Include="Driver.fs" />
+        <None Include="Ex0.gc" />
     </ItemGroup>
 
 
     <ItemGroup>
       <ProjectReference Include="GuardedCommands\GuardedCommands.fsproj" />
+    </ItemGroup>
+
+
+    <ItemGroup>
+      <Reference Include="Machine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>packages\Machine.dll</HintPath>
+      </Reference>
+      <Reference Include="VirtualMachine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>packages\virtualMachine.dll</HintPath>
+      </Reference>
     </ItemGroup>
 </Project>

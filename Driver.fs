@@ -1,9 +1,11 @@
 ﻿namespace Project1
 
-open AndrewKennedyTree
-open PostScript
-open TreeGenerator
-open AST
+open GuardedCommands.Util
+open GuardedCommands.Frontend.TypeCheck
+open GuardedCommands.Backend.CodeGeneration
+
+open ParserUtil
+open CompilerUtil
 
 module Driver =
     // Taken from https://en.wikibooks.org/wiki/F_Sharp_Programming/Higher_Order_Functions#A_Timer_Function
@@ -13,10 +15,9 @@ module Driver =
         let returnValue = f()
         printfn "Elapsed Time: %i" timer.ElapsedMilliseconds
         returnValue
-
-    [<EntryPoint>]
-    let main argv =
         
+    (*
+    let project1 =
         let postScriptWrapper (tree: 'a Tree) (filename: string) = 
             let (postree, extents) = designTree tree
             postScriptSaveResult postree extents filename
@@ -112,4 +113,22 @@ module Driver =
         printfn "Timing string plus"
         duration (fun() -> (postScriptStringPlus postree extents) |> ignore)
         
+        0
+    *)
+    let project2 =
+        
+        System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
+        let ex0Tree = parseFromFile "Ex0.gc"
+
+        let _ = tcP ex0Tree
+
+        let ex0Code = CP ex0Tree
+
+        let _ = go ex0Tree
+
+        let _ = goTrace ex0Tree
+        0
+        
+    [<EntryPoint>]
+    let main argv =
         0

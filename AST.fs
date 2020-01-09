@@ -2,7 +2,7 @@
 
 open AndrewKennedyTree
 
-module AST = 
+module AST1 = 
   // Michael R. Hansen 06-01-2018
   // This file is obtained by an adaption of the file MicroC/Absyn.fs by Peter Sestoft
   //

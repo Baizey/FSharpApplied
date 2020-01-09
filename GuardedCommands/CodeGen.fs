@@ -1,7 +1,6 @@
 ﻿namespace GuardedCommands.Backend
 // Michael R. Hansen 05-01-2016, 04-01-2018
 // This file is obtained by an adaption of the file MicroC/Comp.fs by Peter Sestoft
-open System
 open Machine
 
 open GuardedCommands.Frontend.AST

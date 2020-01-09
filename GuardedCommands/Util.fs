@@ -5,12 +5,12 @@ namespace GuardedCommands.Util
 
 open System.IO
 open System.Text
-open Microsoft.FSharp.Text.Lexing
 
 open GuardedCommands.Frontend.AST
 open Parser
 open Lexer
  
+open Microsoft.FSharp.Text.Lexing
 open Machine
 open VirtualMachine
 
