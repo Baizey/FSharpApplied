@@ -15,9 +15,9 @@ module TypeCheck =
         | B _ -> BType
         | Access acc -> tcA gtenv ltenv acc
 
-        | Apply(f, [ e ]) when List.exists (fun x -> x = f) [ "-" ] -> tcMonadic gtenv ltenv f e
+        | Apply(f, [ e ]) when List.exists (fun x -> x = f) [ "-"; "!" ] -> tcMonadic gtenv ltenv f e
 
-        | Apply(f, [ e1; e2 ]) when List.exists (fun x -> x = f) [ "+"; "*"; "="; "&&" ] ->
+        | Apply(f, [ e1; e2 ]) when List.exists (fun x -> x = f) [ "+"; "-"; "*"; "="; "&&" ] ->
             tcDyadic gtenv ltenv f e1 e2
 
         | _ -> failwith "tcE: not supported yet"
@@ -25,11 +25,12 @@ module TypeCheck =
     and tcMonadic gtenv ltenv f e =
         match (f, tcExpr gtenv ltenv e) with
         | ("-", IType) -> IType
+        | ("!", BType) -> BType
         | _ -> failwith "illegal/illtyped monadic expression"
 
     and tcDyadic gtenv ltenv f e1 e2 =
         match (f, tcExpr gtenv ltenv e1, tcExpr gtenv ltenv e2) with
-        | (o, IType, IType) when List.exists (fun x -> x = o) [ "+"; "*" ] -> IType
+        | (o, IType, IType) when List.exists (fun x -> x = o) [ "+"; "*"; "-" ] -> IType
         | (o, IType, IType) when List.exists (fun x -> x = o) [ "=" ] -> BType
         | (o, BType, BType) when List.exists (fun x -> x = o) [ "&&"; "=" ] -> BType
         | _ -> failwith ("illegal/illtyped dyadic expression: " + f)

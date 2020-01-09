@@ -25,7 +25,7 @@ module CodeGeneration =
     type funEnv = Map<string, label * Type option * ParamDecs>
 
     /// CE vEnv fEnv e gives the code for an expression e on the basis of a variable and a function environment
-    let rec CompEnv varEnv funEnv =
+    let rec CompExpr varEnv funEnv =
         function
         | N n -> [ CSTI n ]
         | B b ->
@@ -35,26 +35,30 @@ module CodeGeneration =
         | Access acc -> CompAccess varEnv funEnv acc @ [ LDI ]
 
         | Apply("-", [ e ]) ->
-            CompEnv varEnv funEnv e @ [ CSTI 0
+            CompExpr varEnv funEnv e @ [CSTI 0
                                         SWAP
                                         SUB ]
+        | Apply("!", [ e ]) ->
+            CompExpr varEnv funEnv e @ [ NOT ]
 
         | Apply("&&", [ b1; b2 ]) ->
             let labend = newLabel()
             let labfalse = newLabel()
-            CompEnv varEnv funEnv b1 @ [ IFZERO labfalse ] @ CompEnv varEnv funEnv b2 @ [ GOTO labend
+            CompExpr varEnv funEnv b1 @ [ IFZERO labfalse ] @ CompExpr varEnv funEnv b2 @ [ 
+                                                                                          GOTO labend
                                                                                           Label labfalse
                                                                                           CSTI 0
                                                                                           Label labend ]
 
-        | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "=" ] ->
+        | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "="; "-" ] ->
             let ins =
                 match o with
                 | "+" -> [ ADD ]
                 | "*" -> [ MUL ]
                 | "=" -> [ EQ ]
+                | "-" -> [ SUB ]
                 | _ -> failwith "CE: this case is not possible"
-            CompEnv varEnv funEnv e1 @ CompEnv varEnv funEnv e2 @ ins
+            CompExpr varEnv funEnv e1 @ CompExpr varEnv funEnv e2 @ ins
 
         | _ -> failwith "CE: not supported yet"
 
@@ -84,21 +88,84 @@ module CodeGeneration =
 
 
     /// CS vEnv fEnv s gives the code for a statement s on the basis of a variable and a function environment
-    let rec CS varEnv funEnv =
+    let rec CompStm varEnv funEnv =
         function
         | PrintLn e ->
-            CompEnv varEnv funEnv e @ [ PRINTI
-                                        INCSP -1 ]
+            CompExpr varEnv funEnv e @ [ PRINTI
+                                         INCSP -1 ]
 
         | Ass(acc, e) ->
-            CompAccess varEnv funEnv acc @ CompEnv varEnv funEnv e @ [ STI
-                                                                       INCSP -1 ]
+            CompAccess varEnv funEnv acc @ CompExpr varEnv funEnv e @ [ STI
+                                                                        INCSP -1 ]
+        | Alt(GC(l)) -> 
+            let labels = List.map (fun _ -> newLabel()) l @ [newLabel(); newLabel()]
+            let rec command ((lst): (Expr * Stm list) list) (num: int) =
+                match lst with
+                | [(expr, stms)] -> Label (labels.Item num) :: CompExpr varEnv funEnv expr 
+                                        @ [IFZERO (labels.Item (num + 1))]
+                                        @ CompStms varEnv funEnv stms 
+                                        @ [GOTO (List.last labels)] 
+                                        @ [Label (labels.Item (num + 1)); STOP; Label (List.last labels)] // Fail and end labels
+                | (expr, stms) :: t -> Label (labels.Item num) :: CompExpr varEnv funEnv expr 
+                                        @ [IFZERO (labels.Item (num + 1))] 
+                                        @ CompStms varEnv funEnv stms 
+                                        @ [GOTO (List.last labels)] 
+                                        @ command t (num + 1)
+                | _ -> failwith "Empty guarded command, should have been caught in typecheck"
+                
+            command l 0
+            (* Instruction structure
+            <l1> <cond1> <JMPZERO l2>
+            <stm1> <GOTO lend>
+            <l2> <cond2> <JMPNZERO l3>
+            <stm2> <GOTO lend>
+            ...
+            <ln> <condn> <JMZERO lstop>
+            <stmn> <GOTO lend>
+            <lstop> STOP
+            <lend>
+            *)
+        | Do(GC(l)) ->
+            let labels = List.map (fun _ -> newLabel()) l @ [newLabel(); newLabel()]
+            let rec command ((lst): (Expr * Stm list) list) (num: int) =
+                match lst with
+                | (expr, stms) :: t -> Label (labels.Item num) :: CompExpr varEnv funEnv expr 
+                                        @ [IFZERO (labels.Item (num + 1))] 
+                                        @ CompStms varEnv funEnv stms 
+                                        @ [GOTO labels.Head] 
+                                        @ command t (num + 1)
+                | [] -> [Label (List.last labels)]
+            
+            Label labels.Head :: command l 1
+            (* Instruction structure
+            <lstart>
+            <ltest1> <cond1> <JMPZERO ltest2>
+            <stm1> <GOTO lstart>
+            <ltest2> <cond2> <JMPZERO ltest3>
+            <stm2> <GOTO lstart>
+            ...
+            <ltestn> <condn> <JMPZERO lend>
+            <ln> <stmn> <GOTO lstart>
+            <lend>
+            *)
 
-        | Block([], stms) -> CSs varEnv funEnv stms
+        | Block([], stms) -> CompStms varEnv funEnv stms
 
         | _ -> failwith "CS: this statement is not supported yet"
 
-    and CSs vEnv fEnv stms = List.collect (CS vEnv fEnv) stms
+        (*
+        <lstart>
+        <ltest1> <cond1> <JMPZERO ltest2>
+        <stm1> <GOTO lstart>
+        <ltest2> <cond2> <JMPZERO ltest3>
+        <stm2> <GOTO lstart>
+        ...
+        <ltestn> <condn> <JMPZERO lend>
+        <ln> <stmn> <GOTO lstart>
+        <lend>
+        *)
+
+    and CompStms vEnv fEnv stms = List.collect (CompStm vEnv fEnv) stms
 
 
 
@@ -124,4 +191,4 @@ module CodeGeneration =
     let CP(P(decs, stms)) =
         let _ = resetLabels()
         let ((gvM, _) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
-        initCode @ CSs gvEnv fEnv stms @ [ STOP ]
+        initCode @ CompStms gvEnv fEnv stms @ [ STOP ]

@@ -19,11 +19,11 @@ module Driver =
     let project2 =
 
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
-        let ex1Tree = parseFromFile "Ex2.gc"
+        let ex1Tree = parseFromFile "Examples/Skip.gc"
         let _ = tcP ex1Tree
 
         // obtain symbolic code:
-        let ex1Code = CP ex1Tree
+        //let ex1Code = CP ex1Tree
 
         // -- is executed with trace as follows:
         let stack = goTrace ex1Tree
@@ -32,7 +32,7 @@ module Driver =
         let sameStack = go ex1Tree
 
         // "All in one" parse from file, type check, compile and run
-        let _ = exec "Ex1.gc"
+        //let _ = exec "Ex1.gc"
         0
 
     [<EntryPoint>]
