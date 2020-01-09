@@ -10,39 +10,40 @@ open Machine
 
 module AST =
 
-   type Exp =                            
-         | N  of int                   (* Integer constant            *)
-         | B of bool                   (* Boolean constant            *)
-         | Access of Access            (* x    or  ^p    or  a[e]     *)
-         | Addr of Access              (* &x   or  &p^   or  &a[e]    *)
-         | Apply of string * Exp list  (* Function application        *)
+    type Expr =
+        | N of int (* Integer constant            *)
+        | B of bool (* Boolean constant            *)
+        | Access of Access (* x    or  ^p    or  a[e]     *)
+        | Addr of Access (* &x   or  &p^   or  &a[e]    *)
+        | Apply of string * Expr list (* Function application        *)
 
-   and Access = 
-          | AVar of string             (* Variable access        x    *) 
-          | AIndex of Access * Exp     (* Array indexing         a[e] *)
-          | ADeref of Exp              (* Pointer dereferencing  p^   *)
+    and Access =
+        | AVar of string (* Variable access        x    *)
+        | AIndex of Access * Expr (* Array indexing         a[e] *)
+        | ADeref of Expr (* Pointer dereferencing  p^   *)
 
-   type Stm  =                            
-          | PrintLn of Exp               (* Print                          *) 
-          | Ass of Access * Exp          (* x:=e  or  p^:=e  or  a[e]:=e   *)
-          | Return of Exp option         (* Return from function           *)   
-          | Alt of GuardedCommand        (* Alternative statement          *) 
-          | Do of GuardedCommand         (* Repetition statement           *) 
-          | Block of Dec list * Stm list (* Block: grouping and scope      *)
-          | Call of string * Exp list    (* Procedure call                 *)
-               
-   and GuardedCommand = GC of (Exp * Stm list) list (* Guarded commands    *)
+    type Stm =
+        | PrintLn of Expr (* Print                          *)
+        | Ass of Access * Expr (* x:=e  or  p^:=e  or  a[e]:=e   *)
+        | Return of Expr option (* Return from function           *)
+        | Alt of GuardedCommand (* Alternative statement          *)
+        | Do of GuardedCommand (* Repetition statement           *)
+        | Block of Dec list * Stm list (* Block: grouping and scope      *)
+        | Call of string * Expr list (* Procedure call                 *)
 
-   and Dec = 
-         | VarDec of Typ * string        (* Variable declaration               *)
-         | FunDec of Typ option * string * Dec list * Stm
-                                         (* Function and procedure declaration *) 
+    and GuardedCommand = GC of (Expr * Stm list) list
 
-   and Typ  = 
-         | ITyp                          (* Type int                    *)
-         | BTyp                          (* Type bool                   *)
-         | ATyp of Typ * int option      (* Type array                  *)
-         | PTyp of Typ                   (* Type pointer                *)
-         | FTyp of Typ list * Typ option (* Type function and procedure *)
+    and Dec =
+        | VarDec of Type * string (* Variable declaration               *)
+        | FunDec of Type option * string * Dec list * Stm
 
-   type Program = P of Dec list * Stm list   (* Program                 *)
+    (* Function and procedure declaration *)
+
+    and Type =
+        | IType (* Type int                    *)
+        | BType (* Type bool                   *)
+        | AType of Type * int option (* Type array                  *)
+        | PType of Type (* Type pointer                *)
+        | FType of Type list * Type option (* Type function and procedure *)
+
+    type Program = P of Dec list * Stm list (* Program                 *)
