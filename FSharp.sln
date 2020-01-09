@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp", "FSharp.fsproj", "{BB019A88-84F2-4A83-A458-238C095F4BFE}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "GuardedCommands", "GuardedCommands\GuardedCommands.fsproj", "{E1814333-CDB8-461F-9AC2-1F11C1FC0AF3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,7 @@ Global
 		{BB019A88-84F2-4A83-A458-238C095F4BFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB019A88-84F2-4A83-A458-238C095F4BFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB019A88-84F2-4A83-A458-238C095F4BFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1814333-CDB8-461F-9AC2-1F11C1FC0AF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1814333-CDB8-461F-9AC2-1F11C1FC0AF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 EndGlobal
