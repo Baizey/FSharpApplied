@@ -25,27 +25,27 @@ module CodeGeneration =
     type funEnv = Map<string, label * Type option * ParamDecs>
 
     /// CE vEnv fEnv e gives the code for an expression e on the basis of a variable and a function environment
-    let rec CE vEnv fEnv =
+    let rec CompEnv varEnv funEnv =
         function
         | N n -> [ CSTI n ]
         | B b ->
             [ CSTI
                 (if b then 1
                  else 0) ]
-        | Access acc -> CA vEnv fEnv acc @ [ LDI ]
+        | Access acc -> CompAccess varEnv funEnv acc @ [ LDI ]
 
         | Apply("-", [ e ]) ->
-            CE vEnv fEnv e @ [ CSTI 0
-                               SWAP
-                               SUB ]
+            CompEnv varEnv funEnv e @ [ CSTI 0
+                                        SWAP
+                                        SUB ]
 
         | Apply("&&", [ b1; b2 ]) ->
             let labend = newLabel()
             let labfalse = newLabel()
-            CE vEnv fEnv b1 @ [ IFZERO labfalse ] @ CE vEnv fEnv b2 @ [ GOTO labend
-                                                                        Label labfalse
-                                                                        CSTI 0
-                                                                        Label labend ]
+            CompEnv varEnv funEnv b1 @ [ IFZERO labfalse ] @ CompEnv varEnv funEnv b2 @ [ GOTO labend
+                                                                                          Label labfalse
+                                                                                          CSTI 0
+                                                                                          Label labend ]
 
         | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "=" ] ->
             let ins =
@@ -54,16 +54,16 @@ module CodeGeneration =
                 | "*" -> [ MUL ]
                 | "=" -> [ EQ ]
                 | _ -> failwith "CE: this case is not possible"
-            CE vEnv fEnv e1 @ CE vEnv fEnv e2 @ ins
+            CompEnv varEnv funEnv e1 @ CompEnv varEnv funEnv e2 @ ins
 
         | _ -> failwith "CE: not supported yet"
 
 
     /// CA vEnv fEnv acc gives the code for an access acc on the basis of a variable and a function environment
-    and CA vEnv fEnv =
+    and CompAccess varEnv funEnv =
         function
         | AVar x ->
-            match Map.find x (fst vEnv) with
+            match Map.find x (fst varEnv) with
             | (GloVar addr, _) -> [ CSTI addr ]
             | (LocVar addr, _) -> failwith "CA: Local variables not supported yet"
         | AIndex(acc, e) -> failwith "CA: array indexing not supported yet"
@@ -71,8 +71,8 @@ module CodeGeneration =
 
 
     (* Bind declared variable in env and generate code to allocate it: *)
-    let allocate (kind: int -> Var) (typ, x) (vEnv: varEnv) =
-        let (env, fdepth) = vEnv
+    let allocate (kind: int -> Var) (typ, x) (varEnv: varEnv) =
+        let (env, fdepth) = varEnv
         match typ with
         | AType(AType _, _) ->
             raise (Failure "allocate: array of arrays not permitted")
@@ -84,17 +84,17 @@ module CodeGeneration =
 
 
     /// CS vEnv fEnv s gives the code for a statement s on the basis of a variable and a function environment
-    let rec CS vEnv fEnv =
+    let rec CS varEnv funEnv =
         function
         | PrintLn e ->
-            CE vEnv fEnv e @ [ PRINTI
-                               INCSP -1 ]
+            CompEnv varEnv funEnv e @ [ PRINTI
+                                        INCSP -1 ]
 
         | Ass(acc, e) ->
-            CA vEnv fEnv acc @ CE vEnv fEnv e @ [ STI
-                                                  INCSP -1 ]
+            CompAccess varEnv funEnv acc @ CompEnv varEnv funEnv e @ [ STI
+                                                                       INCSP -1 ]
 
-        | Block([], stms) -> CSs vEnv fEnv stms
+        | Block([], stms) -> CSs varEnv funEnv stms
 
         | _ -> failwith "CS: this statement is not supported yet"
 
