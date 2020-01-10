@@ -45,26 +45,17 @@
     </ItemGroup>
 
 
-    <ItemGroup />
-
-
     <ItemGroup>
-      <ProjectReference Include="GuardedCommands\GuardedCommands.fsproj" />
+      <Reference Include="Machine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>GuardedCommands\MachineDll\Machine.dll</HintPath>
+      </Reference>
+      <Reference Include="VirtualMachine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>GuardedCommands\MachineDll\virtualMachine.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 
     <ItemGroup>
-      <Reference Include="Machine">
-        <HintPath>GuardedCommands\MachineDll\Machine.dll</HintPath>
-      </Reference>
-      <Reference Include="Machine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>packages\Machine.dll</HintPath>
-      </Reference>
-      <Reference Include="VirtualMachine">
-        <HintPath>GuardedCommands\MachineDll\VirtualMachine.dll</HintPath>
-      </Reference>
-      <Reference Include="VirtualMachine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>packages\virtualMachine.dll</HintPath>
-      </Reference>
+      <ProjectReference Include="GuardedCommands\GuardedCommands.fsproj" />
     </ItemGroup>
 </Project>

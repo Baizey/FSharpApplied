@@ -40,7 +40,8 @@ module ParserUtil =
 
     // Parse a file. (A statement is parsed)
     let parseFromFile filename =
-        if File.Exists(filename) then parseString (File.ReadAllText(filename))
+        let path = "Examples/" + filename
+        if File.Exists(path) then parseString (File.ReadAllText(path))
         else invalidArg "ParserUtil" "File not found"
 
 open ParserUtil
