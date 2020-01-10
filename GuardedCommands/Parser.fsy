@@ -50,11 +50,11 @@ Typ:
     BasicTyp                          { $1 }
 
 DecNameList:
-    | COMMA NAME DecNameList          { $2 :: $3 }
-    | COMMA NAME                      { [$2] }
+    | NAME COMMA DecNameList    { $1 :: $3 }
+    | NAME                      { [$1] }
 
 Dec: 
-    | NAME DecNameList COLON Typ      { MulVarDec($4, $1 :: $2) }
+    | DecNameList COLON Typ           { MulVarDec($3, $1) }
     | NAME COLON Typ                  { VarDec($3,$1) }
 
 DecL: 
