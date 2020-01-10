@@ -68,6 +68,12 @@ module TypeCheck =
         | Ass(acc, e) ->
             if tcA gtenv ltenv acc = tcExpr gtenv ltenv e then ()
             else failwith "illtyped assignment"
+        | Return(a) -> match a with 
+                       | Some(e) -> let t = tcExpr gtenv ltenv e
+                                    let rt = Map.find "function" ltenv
+                                    if t = rt then () else failwith "Return type wrong"
+                       | None -> failwith "Cant return nothing"
+
         | Do(GC(l))
         | Alt(GC(l)) -> match (List.forall (fun (e,_) -> (tcExpr gtenv ltenv e = BTyp)) l) with
                                          | true -> List.iter (fun (_,stms) -> List.iter (tcStm gtenv ltenv) stms) l
@@ -79,14 +85,31 @@ module TypeCheck =
         function
         | VarDec(typ, str) -> Map.add str typ gtenv
         | MulVarDec(typ, strList) -> strList |> List.map (fun str -> tcGDec gtenv (VarDec(typ, str))) |> List.head
-        | FunDec(topt, f, decs, stm) -> failwith "type check: function/procedure declarations not yet supported"
-
+        | FunDec(topt, f, decs, stm) -> 
+            match topt with
+            | Some(rtyp) -> tcFDecs (decsNames decs) //Check all input arguements are unique
+                            let ltenv = Map.add "function" rtyp (tcGDecs Map.empty decs)
+                            tcStm gtenv ltenv stm //Check stm is wellformed and return types correct.
+                            Map.add f (FTyp(List.rev (decsTypes decs),Some(rtyp))) gtenv //Add function to enviroment
+            | _ -> failwith "Functions need a return type"
     and tcGDecs gtenv =
         function
         | dec :: decs -> tcGDecs (tcGDec gtenv dec) decs
         | _ -> gtenv
-
-
+    and decsNames decs = 
+        match decs with
+        | [] -> []
+        | (VarDec(_,n))::rest -> n::decsNames rest
+        | _ -> failwith "Functions cant take functions as input"
+    and decsTypes decs = 
+        match decs with
+        | [] -> []
+        | (VarDec(t,_))::rest -> t::decsTypes rest
+        | _ -> failwith "Functions cant take functions as input"
+    and tcFDecs decs =
+        match decs with
+        | [] -> ()
+        | d::rest -> if List.contains d rest then failwith "Multiple variable have the same name" else tcFDecs rest
     /// tcP prog checks the well-typeness of a program prog
     and tcP (P(decs, stms)) =
         let gtenv = tcGDecs Map.empty decs
