@@ -23,7 +23,6 @@
     <Compile Include="CodeGen.fs" />
     <Compile Include="CodeGenOpt.fs" />
     <Compile Include="Util.fs" />
-    <None Include="Script.fsx" />
     <Content Include="README.txt" />
     <None Include="packages.config" />
     <None Include="app.config" />
