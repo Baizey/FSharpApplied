@@ -10,7 +10,7 @@ open GuardedCommands.Frontend.AST
 open Parser
 open Lexer
 
-open Microsoft.FSharp.Text.Lexing
+open FSharp.Text.Lexing
 open Machine
 open VirtualMachine
 
@@ -29,7 +29,7 @@ open VirtualMachine
 module ParserUtil =
 
     let parseString (text: string) =
-        let lexbuf = LexBuffer<_>.FromBytes(Encoding.UTF8.GetBytes(text))
+        let lexbuf = LexBuffer<_>.FromString text
         try
             Main Lexer.tokenize lexbuf
         with e ->

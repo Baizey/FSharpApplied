@@ -16,6 +16,7 @@ module AST =
         | Access of Access (* x    or  ^p    or  a[e]     *)
         | Addr of Access (* &x   or  &p^   or  &a[e]    *)
         | Apply of string * Exp list (* Function application        *)
+        | Func of string * Exp list (* Function call *)
 
     and Access =
         | AVar of string (* Variable access        x    *)

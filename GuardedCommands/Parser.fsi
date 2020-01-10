@@ -36,6 +36,8 @@ type token =
   | RSP
   | ITYP
   | BTYP
+  | FUNC
+  | RETURN
   | NAME of (string)
   | STRING of (string)
   | BOOL of (bool)
@@ -76,6 +78,8 @@ type tokenId =
     | TOKEN_RSP
     | TOKEN_ITYP
     | TOKEN_BTYP
+    | TOKEN_FUNC
+    | TOKEN_RETURN
     | TOKEN_NAME
     | TOKEN_STRING
     | TOKEN_BOOL
@@ -89,6 +93,7 @@ type nonTerminalId =
     | NONTERM_Prog
     | NONTERM_BasicTyp
     | NONTERM_Typ
+    | NONTERM_TypOpt
     | NONTERM_DecNameList
     | NONTERM_Dec
     | NONTERM_DecL
@@ -100,6 +105,8 @@ type nonTerminalId =
     | NONTERM_GuardedCommand
     | NONTERM_GCList
     | NONTERM_Exp
+    | NONTERM_ExpOpt
+    | NONTERM_ExpList
 /// This function maps tokens to integer indexes
 val tagOfToken: token -> int
 
@@ -111,5 +118,5 @@ val prodIdxToNonTerminal: int -> nonTerminalId
 
 /// This function gets the name of a token as a string
 val token_to_string: token -> string
-val Main : (Microsoft.FSharp.Text.Lexing.LexBuffer<'cty> -> token) -> Microsoft.FSharp.Text.Lexing.LexBuffer<'cty> -> (Program) 
-val Prog : (Microsoft.FSharp.Text.Lexing.LexBuffer<'cty> -> token) -> Microsoft.FSharp.Text.Lexing.LexBuffer<'cty> -> (Program) 
+val Main : (FSharp.Text.Lexing.LexBuffer<'cty> -> token) -> FSharp.Text.Lexing.LexBuffer<'cty> -> (Program) 
+val Prog : (FSharp.Text.Lexing.LexBuffer<'cty> -> token) -> FSharp.Text.Lexing.LexBuffer<'cty> -> (Program) 

@@ -3,7 +3,7 @@ module Lexer
 open System
 open System.Text
 open Parser
-open Microsoft.FSharp.Text.Lexing
+open FSharp.Text.Lexing
 
 let keyword s = 
     match s with
@@ -20,6 +20,8 @@ let keyword s =
     | "od"        -> OD     
     | "true"      -> BOOL(true) 
     | "false"     -> BOOL(false)
+    | "function"  -> FUNC
+    | "return"    -> RETURN
     | _           -> NAME s  
 }
 
@@ -38,7 +40,7 @@ rule tokenize =
   parse
   | whitespace  { tokenize lexbuf }
   | newline     { lexbuf.EndPos <- lexbuf.EndPos.NextLine; tokenize lexbuf }
-  | int         { INT<| Int32.Parse(Encoding.UTF8.GetString(lexbuf.Lexeme)) }
+  | int         { INT<| Int32.Parse(LexBuffer<_>.LexemeString lexbuf) }
   | "("         { LP  } 
   | ")"         { RP  }
   | "["         { LSP }
@@ -61,6 +63,6 @@ rule tokenize =
   | "-"         { MINUS }
   | "="         { EQ }
   | "+"         { PLUS }   
-  | identifier  { keyword(Encoding.UTF8.GetString(lexbuf.Lexeme)) }
+  | identifier  { keyword(LexBuffer<_>.LexemeString lexbuf) }
   | eof         { EOF }
 

@@ -28,8 +28,14 @@
     <None Include="app.config" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="FsLexYacc" Version="7.0.6" />
-      <PackageReference Include="FsLexYacc.Runtime" Version="7.0.6" />
+      <PackageReference Include="FsLexYacc" Version="9.1.0" />
+      <PackageReference Include="FsLexYacc.Runtime" Version="9.1.0" />
+      <FsYacc Include="Parser.fsy">
+        <OtherFlags>--module Parser</OtherFlags>
+      </FsYacc>
+      <FsLex Include="Lexer.fsl">
+        <OtherFlags>--unicode</OtherFlags>
+      </FsLex>
     </ItemGroup>
     <ItemGroup>
       <Reference Include="Machine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
