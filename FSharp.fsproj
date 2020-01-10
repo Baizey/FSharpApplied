@@ -12,6 +12,7 @@
 
 
     <ItemGroup>
+        <Content Include="Examples\A0_0.gc" />
         <None Include="Examples\A0.gc" />
         <None Include="Examples\A1.gc" />
         <None Include="Examples\A2.gc" />

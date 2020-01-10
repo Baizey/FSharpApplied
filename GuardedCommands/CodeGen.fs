@@ -92,17 +92,26 @@ module CodeGeneration =
             match Map.find x (fst varEnv) with
             | (GloVar addr, _) -> [ CSTI addr ]
             | (LocVar addr, _) -> failwith "CA: Local variables not supported yet"
-        | AIndex(acc, e) -> failwith "CA: array indexing not supported yet"
+        | AIndex(acc, e) ->
+            CompAccess varEnv funEnv acc @ [LDI] @ (CompExpr varEnv funEnv e) @ [ADD]
+            //failwith "CA: array indexing not supported yet"
         | ADeref e -> failwith "CA: pointer dereferencing not supported yet"
 
 
     (* Bind declared variable in env and generate code to allocate it: *)
-    let allocate (kind: int -> Var) (typ, x) (varEnv: varEnv) =
+    let rec allocate (kind: int -> Var) (typ, x) (varEnv: varEnv) =
         let (env, fdepth) = varEnv
         match typ with
         | ATyp(ATyp _, _) ->
             raise (Failure "allocate: array of arrays not permitted")
-        | ATyp(t, Some i) -> failwith "allocate: array not supported yet"
+        | ATyp(t, Some i) ->
+            let (newVarEnv, code) = List.fold (fun (env, code) _ ->
+                let (env, newCode) = (allocate kind (t, "") env)
+                (env, code @ newCode)) (varEnv, []) (List.init i (fun _ -> 0))
+            let (_, depth) = newVarEnv
+            let (env, newCode) = (allocate kind (t, x) newVarEnv)
+            let lastCode = (CompAccess env funEnv (AVar(x))) @ (CompExpr env funEnv (N(depth - i))) @ [ STI;  INCSP -1 ]
+            (env, code @ newCode @ lastCode)
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
             let code = [ INCSP 1 ]
