@@ -49,15 +49,19 @@ module CodeGeneration =
                                                                                           Label labfalse
                                                                                           CSTI 0
                                                                                           Label labend ]
-
-        | Apply("<>", [ i1; i2]) ->
+                                                                                          
+        | Apply("<=", [ i1; i2]) ->
             let labend = newLabel()
-            let labZero = newLabel()
-            CompExpr varEnv funEnv i1 @ CompExpr varEnv funEnv i2 @ [ EQ ] @ [ IFZERO labZero ] @ [ CSTI 0 ; GOTO labend ] @ [Label labZero
-                                                                                                                              CSTI 1
-                                                                                                                              Label labend]
+            let labEq = newLabel()
+            CompExpr varEnv funEnv i1 @ CompExpr varEnv funEnv i2 @ [ LT ] @ [ IFNZRO labEq ] 
+                @ CompExpr varEnv funEnv i1 @ CompExpr varEnv funEnv i2 @ [ EQ ] @ [ IFNZRO labEq ]
+                @ [CSTI 0; GOTO labend]
+                @ [Label labEq; CSTI 1; Label labend]
 
-        | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "="; "-"; "<" ] ->
+        | Apply(">", [ i1; i2]) ->
+            CompExpr varEnv funEnv (Apply("<=",[ i1;i2 ])) @ [ NOT ] 
+
+        | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "="; "-"; "<"; "<>"] ->
             let ins =
                 match o with
                 | "+" -> [ ADD ]
@@ -65,6 +69,7 @@ module CodeGeneration =
                 | "=" -> [ EQ ]
                 | "-" -> [ SUB ]
                 | "<" -> [ LT ]
+                | "<>" -> [ EQ ; NOT ]
                 | _ -> failwith "CE: this case is not possible"
             CompExpr varEnv funEnv e1 @ CompExpr varEnv funEnv e2 @ ins
 
