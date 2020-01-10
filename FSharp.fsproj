@@ -37,6 +37,7 @@
         <None Include="Examples\QuickSortV2.gc" />
         <None Include="Examples\Skip.gc" />
         <None Include="Examples\Swap.gc" />
+        <Content Include="Examples\mul.gc" />
         <Compile Include="AndrewKennedyTranslation.fs" />
         <Compile Include="AST.fs" />
         <Compile Include="PostScript.fs" />

@@ -11,8 +11,8 @@ module TypeCheck =
     /// for global and local variables
     let rec tcExpr gtenv ltenv =
         function
-        | N _ -> IType
-        | B _ -> BType
+        | N _ -> ITyp
+        | B _ -> BTyp
         | Access acc -> tcA gtenv ltenv acc
 
         | Apply(f, [ e ]) when List.exists (fun x -> x = f) [ "-"; "!" ] -> tcMonadic gtenv ltenv f e
@@ -24,15 +24,15 @@ module TypeCheck =
 
     and tcMonadic gtenv ltenv f e =
         match (f, tcExpr gtenv ltenv e) with
-        | ("-", IType) -> IType
-        | ("!", BType) -> BType
+        | ("-", ITyp) -> ITyp
+        | ("!", BTyp) -> BTyp
         | _ -> failwith "illegal/illtyped monadic expression"
 
     and tcDyadic gtenv ltenv f e1 e2 =
         match (f, tcExpr gtenv ltenv e1, tcExpr gtenv ltenv e2) with
-        | (o, IType, IType) when List.exists (fun x -> x = o) [ "+"; "*"; "-" ] -> IType
-        | (o, IType, IType) when List.exists (fun x -> x = o) [ "=" ] -> BType
-        | (o, BType, BType) when List.exists (fun x -> x = o) [ "&&"; "=" ] -> BType
+        | (o, ITyp, ITyp) when List.exists (fun x -> x = o) [ "+"; "*"; "-" ] -> ITyp
+        | (o, ITyp, ITyp) when List.exists (fun x -> x = o) [ "=" ] -> BTyp
+        | (o, BTyp, BTyp) when List.exists (fun x -> x = o) [ "&&"; "=" ] -> BTyp
         | _ -> failwith ("illegal/illtyped dyadic expression: " + f)
 
     and tcNaryFunction gtenv ltenv f es = failwith "type check: functions not supported yet"
@@ -64,7 +64,7 @@ module TypeCheck =
             if tcA gtenv ltenv acc = tcExpr gtenv ltenv e then ()
             else failwith "illtyped assignment"
         | Do(GC(l))
-        | Alt(GC(l)) -> match (List.forall (fun (e,_) -> (tcExpr gtenv ltenv e = BType)) l) with
+        | Alt(GC(l)) -> match (List.forall (fun (e,_) -> (tcExpr gtenv ltenv e = BTyp)) l) with
                                          | true -> List.iter (fun (_,stms) -> List.iter (tcStm gtenv ltenv) stms) l
                                          | false -> failwith "Guard is not of type boolean"
         | Block([], stms) -> List.iter (tcStm gtenv ltenv) stms
@@ -72,7 +72,8 @@ module TypeCheck =
 
     and tcGDec gtenv =
         function
-        | VarDec(t, s) -> Map.add s t gtenv
+        | VarDec(typ, str) -> Map.add str typ gtenv
+        | MulVarDec(typ, strList) -> strList |> List.map (fun str -> tcGDec gtenv (VarDec(typ, str))) |> List.head
         | FunDec(topt, f, decs, stm) -> failwith "type check: function/procedure declarations not yet supported"
 
     and tcGDecs gtenv =

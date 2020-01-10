@@ -15,13 +15,13 @@ module CodeGenerationOpt =
     (* The variable environment keeps track of global and local variables, and
    keeps track of next available offset for local variables *)
 
-    type varEnv = Map<string, Var * Type> * int
+    type varEnv = Map<string, Var * Typ> * int
 
     (* The function environment maps function name to label and parameter decs *)
 
-    type ParamDecs = (Type * string) list
+    type ParamDecs = (Typ * string) list
 
-    type funEnv = Map<string, label * Type option * ParamDecs>
+    type funEnv = Map<string, label * Typ option * ParamDecs>
 
 
     (* Directly copied from Peter Sestoft   START
@@ -158,8 +158,8 @@ module CodeGenerationOpt =
     let allocate (kind: int -> Var) (typ, x) (vEnv: varEnv) =
         let (env, fdepth) = vEnv
         match typ with
-        | AType(AType _, _) -> failwith "allocate: array of arrays not permitted"
-        | AType(t, Some i) -> failwith "allocate: array not supported yet"
+        | ATyp(ATyp _, _) -> failwith "allocate: array of arrays not permitted"
+        | ATyp(t, Some i) -> failwith "allocate: array not supported yet"
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
             let code = [ INCSP 1 ]
@@ -192,6 +192,11 @@ module CodeGenerationOpt =
             | [] -> (vEnv, fEnv, [])
             | dec :: decr ->
                 match dec with
+                | MulVarDec(typ, varList) ->
+                    List.fold (fun (vEnv, fEnv, code) name ->
+                        let (vEnv2, fEnv2, code2) = addv [VarDec(typ, name)] vEnv fEnv
+                        (vEnv2, fEnv2, code @ code2))
+                        (vEnv, fEnv, []) varList
                 | VarDec(typ, var) ->
                     let (vEnv1, code1) = allocate GloVar (typ, var) vEnv
                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv

@@ -16,7 +16,7 @@ module Driver =
         let returnValue = f()
         printfn "Elapsed Time: %i" timer.ElapsedMilliseconds
         returnValue
-        
+        (*
     let project2 =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
         // The Ex0.gc example:
@@ -83,8 +83,11 @@ module Driver =
 
         *) 2 pts
         0
-
+*)
     [<EntryPoint>]
     let main argv =
-        project2 |> ignore
+        System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
+        let tree = parseFromFile "mul.gc"
+        let code = CP tree
+        let stack = goTrace tree
         0

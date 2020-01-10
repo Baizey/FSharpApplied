@@ -16,13 +16,13 @@ module CodeGeneration =
     (* The variable environment keeps track of global and local variables, and
    keeps track of next available offset for local variables *)
 
-    type varEnv = Map<string, Var * Type> * int
+    type varEnv = Map<string, Var * Typ> * int
 
     (* The function environment maps function name to label and parameter decs *)
 
-    type ParamDecs = (Type * string) list
+    type ParamDecs = (Typ * string) list
 
-    type funEnv = Map<string, label * Type option * ParamDecs>
+    type funEnv = Map<string, label * Typ option * ParamDecs>
 
     /// CE vEnv fEnv e gives the code for an expression e on the basis of a variable and a function environment
     let rec CompExpr varEnv funEnv =
@@ -78,9 +78,9 @@ module CodeGeneration =
     let allocate (kind: int -> Var) (typ, x) (varEnv: varEnv) =
         let (env, fdepth) = varEnv
         match typ with
-        | AType(AType _, _) ->
+        | ATyp(ATyp _, _) ->
             raise (Failure "allocate: array of arrays not permitted")
-        | AType(t, Some i) -> failwith "allocate: array not supported yet"
+        | ATyp(t, Some i) -> failwith "allocate: array not supported yet"
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
             let code = [ INCSP 1 ]
@@ -99,7 +99,7 @@ module CodeGeneration =
                                                                         INCSP -1 ]
         | Alt(GC(l)) -> 
             let labels = List.map (fun _ -> newLabel()) l @ [newLabel(); newLabel()]
-            let rec command ((lst): (Expr * Stm list) list) (num: int) =
+            let rec command ((lst): (Exp * Stm list) list) (num: int) =
                 match lst with
                 | [(expr, stms)] -> Label (labels.Item num) :: CompExpr varEnv funEnv expr 
                                         @ [IFZERO (labels.Item (num + 1))]
@@ -127,7 +127,7 @@ module CodeGeneration =
             *)
         | Do(GC(l)) ->
             let labels = List.map (fun _ -> newLabel()) l @ [newLabel(); newLabel()]
-            let rec command ((lst): (Expr * Stm list) list) (num: int) =
+            let rec command ((lst): (Exp * Stm list) list) (num: int) =
                 match lst with
                 | (expr, stms) :: t -> Label (labels.Item num) :: CompExpr varEnv funEnv expr 
                                         @ [IFZERO (labels.Item (num + 1))] 
@@ -179,6 +179,11 @@ module CodeGeneration =
             | [] -> (vEnv, fEnv, [])
             | dec :: decr ->
                 match dec with
+                | MulVarDec(typ, varList) ->
+                    List.fold (fun (vEnv, fEnv, code) name ->
+                        let (vEnv2, fEnv2, code2) = addv [VarDec(typ, name)] vEnv fEnv
+                        (vEnv2, fEnv2, code @ code2))
+                        (vEnv, fEnv, []) varList
                 | VarDec(typ, var) ->
                     let (vEnv1, code1) = allocate GloVar (typ, var) vEnv
                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv

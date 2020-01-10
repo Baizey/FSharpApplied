@@ -29,6 +29,7 @@ open GuardedCommands.Frontend.AST
 %type <Stm list> StmList StmL
 %type <Stm> Stm
 %type <Typ> BasicTyp Typ
+%type <string list> DecNameList
 %type <Dec> Dec
 %type <Dec list> DecL DecList
 %type <Program> Main Prog
@@ -48,8 +49,13 @@ BasicTyp:
 Typ:
     BasicTyp                          { $1 }
 
+DecNameList:
+    | COMMA NAME DecNameList          { $2 :: $3 }
+    | COMMA NAME                      { [$2] }
+
 Dec: 
-    NAME COLON Typ                    { VarDec($3,$1) }
+    | NAME DecNameList COLON Typ      { MulVarDec($4, $1 :: $2) }
+    | NAME COLON Typ                  { VarDec($3,$1) }
 
 DecL: 
                                       { [] }
