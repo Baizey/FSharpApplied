@@ -49,7 +49,16 @@ module CodeGeneration =
                                                                                           Label labfalse
                                                                                           CSTI 0
                                                                                           Label labend ]
-                                                                                          
+
+        | Apply("||", [ b1; b2 ]) ->
+            let labend = newLabel()
+            let labtrue = newLabel()
+            CompExpr varEnv funEnv b1 @ [ IFNZRO labtrue ] @ CompExpr varEnv funEnv b2 @ [ 
+                                                                                          GOTO labend
+                                                                                          Label labtrue
+                                                                                          CSTI 1
+                                                                                          Label labend ]
+
         | Apply("<=", [ i1; i2]) ->
             let labend = newLabel()
             let labEq = newLabel()

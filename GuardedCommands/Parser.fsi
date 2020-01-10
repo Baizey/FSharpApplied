@@ -12,6 +12,7 @@ type token =
   | MINUS
   | TIMES
   | AND
+  | OR
   | EQ
   | LE
   | LT
@@ -54,6 +55,7 @@ type tokenId =
     | TOKEN_MINUS
     | TOKEN_TIMES
     | TOKEN_AND
+    | TOKEN_OR
     | TOKEN_EQ
     | TOKEN_LE
     | TOKEN_LT
