@@ -87,7 +87,8 @@ module Driver =
     [<EntryPoint>]
     let main argv =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
-        let tree = parseFromFile "Ex3.gc"
+        let tree = parseFromFile "Ex7.gc"
+        let tcp = tcP tree
         let code = CP tree
         let stack = goTrace tree
         0

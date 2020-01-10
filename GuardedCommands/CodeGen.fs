@@ -184,18 +184,6 @@ module CodeGeneration =
 
         | _ -> failwith "CS: this statement is not supported yet"
 
-        (*
-        <lstart>
-        <ltest1> <cond1> <JMPZERO ltest2>
-        <stm1> <GOTO lstart>
-        <ltest2> <cond2> <JMPZERO ltest3>
-        <stm2> <GOTO lstart>
-        ...
-        <ltestn> <condn> <JMPZERO lend>
-        <ln> <stmn> <GOTO lstart>
-        <lend>
-        *)
-
     and CompStms vEnv fEnv stms = List.collect (CompStm vEnv fEnv) stms
 
 
@@ -220,6 +208,8 @@ module CodeGeneration =
                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
                     (vEnv2, fEnv2, code1 @ code2)
                 | FunDec(tyOpt, f, xs, body) ->
+                    // todo: bind function
+                    let (vEnv2, fEnv2, code2) = addv decr vEnv fEnv
                     failwith "makeGlobalEnvs: function/procedure declarations not supported yet"
         addv decs (Map.empty, 0) Map.empty
 

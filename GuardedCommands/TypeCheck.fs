@@ -19,6 +19,7 @@ module TypeCheck =
 
         | Apply(f, [ e1; e2 ]) when List.exists (fun x -> x = f) [ "+"; "-"; "*"; "="; "&&"; "<"; "<>"; "<="; ">"; "||" ] ->
             tcDyadic gtenv ltenv f e1 e2
+        | Func(f, es) -> tcNaryFunction gtenv ltenv f es
 
         | _ -> failwith "tcE: not supported yet"
 
@@ -35,7 +36,12 @@ module TypeCheck =
         | (o, BTyp, BTyp) when List.exists (fun x -> x = o) [ "&&"; "="; "<>"; "||" ] -> BTyp
         | _ -> failwith ("illegal/illtyped dyadic expression: " + f)
 
-    and tcNaryFunction gtenv ltenv f es = failwith "type check: functions not supported yet"
+    and tcNaryFunction (gtenv: Map<string, Typ>) ltenv f es = 
+        match gtenv.Item f with
+        | FTyp(expl, Some(t)) -> 
+            if List.forall (fun (e1, e2) -> e1 = e2) (List.zip (List.map (fun x -> tcExpr gtenv ltenv x) es) expl) then t
+            else failwith "function call types are mismatched"
+        | _ -> failwith "Function either has no return type, or structure is wrong"
 
     and tcNaryProcedure gtenv ltenv f es = failwith "type check: procedures not supported yet"
 
