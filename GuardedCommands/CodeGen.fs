@@ -50,13 +50,21 @@ module CodeGeneration =
                                                                                           CSTI 0
                                                                                           Label labend ]
 
-        | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "="; "-" ] ->
+        | Apply("<>", [ i1; i2]) ->
+            let labend = newLabel()
+            let labZero = newLabel()
+            CompExpr varEnv funEnv i1 @ CompExpr varEnv funEnv i2 @ [ EQ ] @ [ IFZERO labZero ] @ [ CSTI 0 ; GOTO labend ] @ [Label labZero
+                                                                                                                              CSTI 1
+                                                                                                                              Label labend]
+
+        | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "="; "-"; "<" ] ->
             let ins =
                 match o with
                 | "+" -> [ ADD ]
                 | "*" -> [ MUL ]
                 | "=" -> [ EQ ]
                 | "-" -> [ SUB ]
+                | "<" -> [ LT ]
                 | _ -> failwith "CE: this case is not possible"
             CompExpr varEnv funEnv e1 @ CompExpr varEnv funEnv e2 @ ins
 
