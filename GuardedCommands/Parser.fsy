@@ -54,8 +54,8 @@ DecNameList:
     | NAME                      { [$1] }
 
 Dec: 
-    | DecNameList COLON Typ           { MulVarDec($3, $1) }
     | NAME COLON Typ                  { VarDec($3,$1) }
+    | DecNameList COLON Typ           { MulVarDec($3, $1) }
 
 DecL: 
                                       { [] }
