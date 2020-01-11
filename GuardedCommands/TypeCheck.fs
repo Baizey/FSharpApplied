@@ -61,9 +61,13 @@ module TypeCheck =
             match (tcA gtenv ltenv acc) with
             | a ->
                 match (tcExpr gtenv ltenv i) with
-                | ITyp _ -> ATyp(a, Some(1))
+                | ITyp _ -> findArrayType a
                 | _ -> failwith "tcA: array index needs to be int"
         | ADeref e -> failwith "tcA: pointer dereferencing not supported yes"
+    and findArrayType arr =
+        match arr with
+        | ATyp(typ, _) -> findArrayType typ
+        | _ -> arr
 
 
     /// tcS gtenv ltenv retOpt s checks the well-typeness of a statement s on the basis of type environments gtenv and ltenv
