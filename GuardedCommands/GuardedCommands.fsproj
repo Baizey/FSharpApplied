@@ -13,8 +13,6 @@
 
     <ItemGroup>
     <Compile Include="AST.fs" />
-    <None Include="MachineDll\Machine.dll" />
-    <None Include="MachineDll\virtualMachine.dll" />
     <None Include="Parser.fsy" />
     <None Include="Lexer.fsl" />
     <Compile Include="Parser.fs" />
@@ -39,10 +37,10 @@
     </ItemGroup>
     <ItemGroup>
       <Reference Include="Machine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\packages\Machine.dll</HintPath>
+        <HintPath>MachineDll\Machine.dll</HintPath>
       </Reference>
       <Reference Include="VirtualMachine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\packages\virtualMachine.dll</HintPath>
+        <HintPath>MachineDll\virtualMachine.dll</HintPath>
       </Reference>
     </ItemGroup>
 </Project>
