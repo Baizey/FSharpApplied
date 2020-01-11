@@ -105,13 +105,13 @@ module CodeGeneration =
         match typ with
         | ATyp((ATyp (a, b)), Some size) ->
             failwith "allocate: array of arrays not supported"
-        | ATyp(t, Some i) ->
+        | ATyp(innerType, Some size) ->
             let (newVarEnv, code) = List.fold (fun (env, code) _ ->
-                let (env, newCode) = (allocate kind (t, "") env)
-                (env, code @ newCode)) (varEnv, []) (List.init i (fun _ -> 0))
+                let (env, newCode) = (allocate kind (innerType, "") env)
+                (env, code @ newCode)) (varEnv, []) (List.init size (fun _ -> 0))
             let (_, depth) = newVarEnv
-            let (env, newCode) = (allocate kind (t, x) newVarEnv)
-            let lastCode = (CompAccess env funEnv (AVar(x))) @ (CompExpr env funEnv (N(depth - i))) @ [ STI;  INCSP -1 ]
+            let (env, newCode) = (allocate kind (innerType, x) newVarEnv)
+            let lastCode = (CompAccess env funEnv (AVar(x))) @ (CompExpr env funEnv (N(depth - size))) @ [ STI;  INCSP -1 ]
             (env, code @ newCode @ lastCode)
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
