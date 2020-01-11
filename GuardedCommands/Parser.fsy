@@ -103,6 +103,7 @@ StmL:
 
 StmList:
   | Stm                               { [$1] }
+  | Stm SEMI                          { [$1] }
   | Stm SEMI StmList                  { $1 :: $3 } 
 
 GuardedCommand:
