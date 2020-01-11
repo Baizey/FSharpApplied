@@ -92,9 +92,10 @@ module CodeGeneration =
             match Map.find x (fst varEnv) with
             | (GloVar addr, _) -> [ CSTI addr ]
             | (LocVar addr, _) -> failwith "CA: Local variables not supported yet"
+        | AIndex(AIndex(a, b), e) ->
+            failwith "CompAccess: array of arrays not supported"
         | AIndex(acc, e) ->
             CompAccess varEnv funEnv acc @ [LDI] @ (CompExpr varEnv funEnv e) @ [ADD]
-            //failwith "CA: array indexing not supported yet"
         | ADeref e -> failwith "CA: pointer dereferencing not supported yet"
 
 
@@ -102,8 +103,8 @@ module CodeGeneration =
     let rec allocate (kind: int -> Var) (typ, x) (varEnv: varEnv) =
         let (env, fdepth) = varEnv
         match typ with
-        | ATyp(ATyp _, _) ->
-            raise (Failure "allocate: array of arrays not permitted")
+        | ATyp((ATyp (a, b)), Some size) ->
+            failwith "allocate: array of arrays not supported"
         | ATyp(t, Some i) ->
             let (newVarEnv, code) = List.fold (fun (env, code) _ ->
                 let (env, newCode) = (allocate kind (t, "") env)
