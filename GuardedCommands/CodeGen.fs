@@ -103,6 +103,7 @@ module CodeGeneration =
     let rec allocate (kind: int -> Var) (typ, x) (varEnv: varEnv) =
         let (env, fdepth) = varEnv
         match typ with
+        | ATyp(_, None) -> failwith "Array needs to be given a size"
         | ATyp((ATyp (a, b)), Some size) ->
             failwith "allocate: array of arrays not supported"
         | ATyp(innerType, Some size) ->
