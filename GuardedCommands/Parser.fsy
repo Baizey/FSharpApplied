@@ -25,7 +25,7 @@ open GuardedCommands.Frontend.AST
 
 %start Main Prog 
 %type <Exp> Exp
-%type <Access> Access AIndex
+%type <Access> Access
 %type <Access list> AssignList
 %type <(Exp * Stm list) list> GCList
 %type <GuardedCommand> GuardedCommand
@@ -54,10 +54,6 @@ IntOpt:
                                       { None }
     | INT                             { Some($1) }
 
-AIndex:
-    | Access LSP Exp RSP { AIndex($1, $3) }
-    | AIndex LSP Exp RSP { AIndex($1, $3) }
-
 Typ:
     | Typ LSP IntOpt RSP                { ATyp($1, $3) }
     | BasicTyp                        { $1 }
@@ -84,16 +80,14 @@ DecList:
    | Dec COMMA DecList                { $1 :: $3 }
 
 Access:
-    |NAME                              { AVar $1 }
+    | Access LSP Exp RSP              { AIndex($1, $3) }
+    | NAME                            { AVar $1 }
 
 AssignList:
-    | AIndex                          { [$1] }
     | Access                          { [$1] }
-    | AIndex COMMA AssignVarList      { $1 :: $3 }
-    | Access COMMA AssignVarList      { $1 :: $3 }
+    | Access COMMA AssignList      { $1 :: $3 }
 
 Assign:
-  | AIndex ASG Exp                    { Ass($1, $3) }
   | Access ASG Exp                    { Ass($1, $3) }
   | AssignList ASG ExpList         { MulAss($1, $3) }
       
@@ -125,7 +119,6 @@ GCList:
   | Exp TO StmL BAR GCList	   		  { ($1,$3)::$5 }
 
 Exp:
-  | AIndex                            { Access $1 }
   | Access                            { Access $1 }
   | INT                               { N $1 }
   | BOOL                              { B $1 }       
