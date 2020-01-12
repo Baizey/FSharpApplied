@@ -75,6 +75,15 @@ module TypeCheck =
     and tcStm gtenv ltenv =
         function
         | PrintLn e -> ignore (tcExpr gtenv ltenv e)
+        | MulAss([], []) ->
+            ()
+        | MulAss(_, []) ->
+            failwith "illtyped multi assignment, missing right side expressions"
+        | MulAss([], _) ->
+            failwith "illtyped multi assignment, missing left side variables"
+        | MulAss(acc::accs, e::es) ->
+            if tcA gtenv ltenv acc = tcExpr gtenv ltenv e then tcStm gtenv ltenv (MulAss(accs, es))
+            else failwith "illtyped multi assignment"
         | Ass(acc, e) ->
             if tcA gtenv ltenv acc = tcExpr gtenv ltenv e then ()
             else failwith "illtyped assignment"
@@ -94,7 +103,8 @@ module TypeCheck =
     and tcGDec gtenv =
         function
         | VarDec(typ, str) -> Map.add str typ gtenv
-        | MulVarDec(typ, strList) -> strList |> List.map (fun str -> tcGDec gtenv (VarDec(typ, str))) |> List.head
+        | MulVarDec(typ, strList) ->
+            List.fold (fun state str -> tcGDec state (VarDec(typ, str))) gtenv strList
         | FunDec(topt, f, decs, stm) -> 
             match topt with
             | Some(rtyp) -> tcFDecs (decsNames decs) //Check all input arguements are unique

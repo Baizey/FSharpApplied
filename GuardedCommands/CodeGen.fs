@@ -125,10 +125,11 @@ module CodeGeneration =
         | PrintLn e ->
             CompExpr varEnv funEnv e @ [ PRINTI
                                          INCSP -1 ]
-
+        | MulAss([], []) -> []
+        | MulAss(acc::accs, e::es) ->
+            CompStm varEnv funEnv (Ass(acc, e)) @ CompStm varEnv funEnv (MulAss(accs, es))
         | Ass(acc, e) ->
-            CompAccess varEnv funEnv acc @ CompExpr varEnv funEnv e @ [ STI
-                                                                        INCSP -1 ]
+            CompAccess varEnv funEnv acc @ CompExpr varEnv funEnv e @ [ STI; INCSP -1 ]
         | Alt(GC(l)) -> 
             let labels = List.map (fun _ -> newLabel()) l @ [newLabel(); newLabel()]
             let rec command ((lst): (Exp * Stm list) list) (num: int) =
