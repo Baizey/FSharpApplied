@@ -30,8 +30,8 @@ module CodeGeneration =
     type funEnv = Map<string, label * Typ option * ParamDecs>
 
     /// CE vEnv fEnv e gives the code for an expression e on the basis of a variable and a function environment
-    let rec CompExpr varEnv funEnv =
-        function
+    let rec CompExpr (varEnv: varEnv) (funEnv: funEnv) (exp: Exp): instr list =
+        match exp with
         | N n -> [ CSTI n ]
         | B b ->
             [ CSTI
@@ -86,8 +86,8 @@ module CodeGeneration =
 
 
     /// CA vEnv fEnv acc gives the code for an access acc on the basis of a variable and a function environment
-    and CompAccess varEnv (funEnv: funEnv) =
-        function
+    and CompAccess (varEnv: varEnv) (funEnv: funEnv) (access: Access): instr list =
+        match access with
         | AVar x ->
             match Map.find x (fst varEnv) with
             | (GloVar addr, _) -> [ CSTI addr ]
@@ -112,7 +112,7 @@ module CodeGeneration =
                 (env, code @ newCode)) (varEnv, []) (List.init size (fun _ -> 0))
             let (_, depth) = newVarEnv
             let (env, newCode) = (allocate kind (innerType, x) newVarEnv)
-            let lastCode = (CompAccess env (funEnv Seq.empty) (AVar(x))) @ (CompExpr env (funEnv Seq.empty) (N(depth - size))) @ [ STI;  INCSP -1 ]
+            let lastCode = (CompAccess env Map.empty (AVar(x))) @ [ CSTI (depth - size); STI; INCSP -1 ]
             (env, code @ newCode @ lastCode)
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
@@ -120,8 +120,8 @@ module CodeGeneration =
             (newEnv, code)
 
     /// CS vEnv fEnv s gives the code for a statement s on the basis of a variable and a function environment
-    let rec CompStm varEnv funEnv =
-        function
+    let rec CompStm (varEnv: varEnv) (funEnv: funEnv) (stm:Stm)=
+        match stm with
         | PrintLn e ->
             CompExpr varEnv funEnv e @ [ PRINTI
                                          INCSP -1 ]
@@ -201,22 +201,29 @@ module CodeGeneration =
         // Function return
         | Return(Some(expr)) -> 
             let (_, _, list) = funEnv.Item TMP_FUNCTION_STR
-            let localVars = Map.filter (fun _ (var, _) -> match var with 
-                                                            | LocVar(_) -> true
-                                                            | GloVar(_) -> false
-                                ) (fst varEnv) |> Map.count
-            CompExpr varEnv funEnv expr @ [RET (list.Length + localVars) ]
+
+            let localVars = Map.fold (fun acc _ (var, typ) -> 
+                                match (var, typ) with
+                                | (LocVar(_), ATyp(_, Some(i))) -> acc + i + 1
+                                | (LocVar(_), _) -> acc + 1
+                                | _ -> acc
+                            ) 0 (fst varEnv)
+            //let localVars = Map.filter (fun _ (var, _) -> match var with 
+            //                                                | LocVar(_) -> true
+            //                                                | GloVar(_) -> false
+            //                    ) (fst varEnv) |> Map.count
+            CompExpr varEnv funEnv expr @ [ RET localVars ]
 
         | _ -> failwith "CS: this statement is not supported yet"
 
-    and CompStms vEnv fEnv stms = List.collect (CompStm vEnv fEnv) stms
+    and CompStms (vEnv: varEnv) (fEnv: funEnv) stms = List.collect (CompStm vEnv fEnv) stms
 
     (* ------------------------------------------------------------------- *)
 
     (* Build environments for global variables and functions *)
 
     let makeGlobalEnvs decs =
-        let rec addv decs vEnv (fEnv: funEnv) =
+        let rec addv (decs: Dec list) (vEnv: varEnv) (fEnv: funEnv) =
             match decs with
             | [] -> (vEnv, fEnv, [])
             | dec :: decr ->
