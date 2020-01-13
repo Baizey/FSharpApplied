@@ -97,6 +97,9 @@ module TypeCheck =
                                          | true -> List.iter (fun (_,stms) -> List.iter (tcStm gtenv ltenv) stms) l
                                          | false -> failwith "Guard is not of type boolean"
         | Block([], stms) -> List.iter (tcStm gtenv ltenv) stms
+        | Block(decs, stms) -> let innerLtenv = tcGDecs gtenv decs
+                               let locEnv = Map.fold (fun acc str typ -> Map.add str typ acc) ltenv innerLtenv
+                               List.iter (tcStm gtenv locEnv) stms
         | _ -> failwith "tcS: this statement is not supported yet"
 
     and tcGDec gtenv =

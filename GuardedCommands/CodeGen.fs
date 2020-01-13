@@ -183,6 +183,7 @@ module CodeGeneration =
             *)
 
         | Block([], stms) -> CompStms varEnv funEnv stms
+        | Block(decs, stms) -> failwith "Block not implemented for dec list"
         // Function return
         | Return(Some(expr)) -> 
             let (_, _, list) = funEnv.Item TMP_FUNCTION_STR
@@ -222,15 +223,10 @@ module CodeGeneration =
                     let fEnv1 = Map.add f (label, tyOpt, varDescs) fEnv
                     let tempEnv = Map.add TMP_FUNCTION_STR ("", None, decsList xs) fEnv1
 
-                    
+                    let (lv,_) = List.fold (fun ((env,b),a) (t,n) -> (((Map.add n (LocVar(a),t) env),b),a+1)) (vEnv,0) varDescs
 
-                    let (vEnv1, code) = List.fold (fun (vInnerEnv, instr) (typ, var) -> 
-                                                let (newVEnv, nInstr) = allocate LocVar (typ, var) vInnerEnv 
-                                                (newVEnv, instr @ nInstr))
-                                            (vEnv, []) varDescs
                     let skipLabel = newLabel()
-                    let code1 = GOTO skipLabel :: Label label :: code @ CompStm vEnv1 tempEnv body @ [ Label skipLabel ]
-
+                    let code1 = GOTO skipLabel :: Label label :: CompStm lv tempEnv body @ [ Label skipLabel ]
                     let (vEnv2, fEnv2, code2) = addv decr vEnv fEnv1
                     (vEnv2, fEnv2, code1 @ code2)
         addv decs (Map.empty, 0) Map.empty

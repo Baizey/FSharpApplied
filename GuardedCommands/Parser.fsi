@@ -103,13 +103,11 @@ type nonTerminalId =
     | NONTERM_TypOpt
     | NONTERM_DecNameList
     | NONTERM_Dec
-    | NONTERM_DecL
     | NONTERM_DecList
     | NONTERM_Access
     | NONTERM_AssignList
     | NONTERM_Assign
     | NONTERM_Stm
-    | NONTERM_StmL
     | NONTERM_StmList
     | NONTERM_GuardedCommand
     | NONTERM_GCList
