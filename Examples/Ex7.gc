@@ -1,12 +1,7 @@
 ﻿
 begin 
    x: int,
-<<<<<<< HEAD
    function f(x: int): int = { print x; return x+1 }; 
    x:= f(2);
-=======
-   function f(x: int, y: int): int = { print x; print y; return x+y }; 
-   x:= f(2,3);
->>>>>>> 4ddf2fbae63f582b04cc1bfdfb48737d8e8feec7
    print x
 end
