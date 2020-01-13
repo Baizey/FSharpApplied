@@ -6,7 +6,12 @@ open Machine
 open GuardedCommands.Frontend.AST
 
 module CodeGeneration =
-
+    // This string is used to add a known temporary string
+    // to the function environment, so that the number of arguments
+    // can be fetched in the Return statement.
+    // Note: This must be a keyword, otherwise we risk it overwriting
+    // another function
+    let TMP_FUNCTION_STR = "function"
 
     (* A global variable has an absolute address, a local one has an offset: *)
     type Var =
@@ -74,7 +79,6 @@ module CodeGeneration =
                 | _ -> failwith "CE: this case is not possible"
             CompExpr varEnv funEnv e1 @ CompExpr varEnv funEnv e2 @ ins
         | Func(f,es) -> let (flabel,_,_) = Map.find f funEnv
-                        //let flabel = newLabel() 
                         (List.fold (fun s v -> s @ CompExpr varEnv funEnv v) [] es) @
                         [CALL (List.length es, flabel)]
                         //failwith "function call not implemented yet"
@@ -82,12 +86,12 @@ module CodeGeneration =
 
 
     /// CA vEnv fEnv acc gives the code for an access acc on the basis of a variable and a function environment
-    and CompAccess varEnv funEnv =
+    and CompAccess varEnv (funEnv: funEnv) =
         function
         | AVar x ->
             match Map.find x (fst varEnv) with
             | (GloVar addr, _) -> [ CSTI addr ]
-            | (LocVar addr, _) -> failwith "CA: Local variables not supported yet"
+            | (LocVar addr, _) -> [ GETBP; CSTI addr; ADD ]
         | AIndex(AIndex(a, b), e) ->
             failwith "CompAccess: array of arrays not supported"
         | AIndex(acc, e) ->
@@ -114,7 +118,6 @@ module CodeGeneration =
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
             let code = [ INCSP 1 ]
             (newEnv, code)
-
 
     /// CS vEnv fEnv s gives the code for a statement s on the basis of a variable and a function environment
     let rec CompStm varEnv funEnv =
@@ -180,19 +183,21 @@ module CodeGeneration =
             *)
 
         | Block([], stms) -> CompStms varEnv funEnv stms
+        // Function return
+        | Return(Some(expr)) -> 
+            let (_, _, list) = funEnv.Item TMP_FUNCTION_STR
+            CompExpr varEnv funEnv expr @ [RET list.Length] 
 
         | _ -> failwith "CS: this statement is not supported yet"
 
     and CompStms vEnv fEnv stms = List.collect (CompStm vEnv fEnv) stms
-
-
 
     (* ------------------------------------------------------------------- *)
 
     (* Build environments for global variables and functions *)
 
     let makeGlobalEnvs decs =
-        let rec addv decs vEnv fEnv =
+        let rec addv decs vEnv (fEnv: funEnv) =
             match decs with
             | [] -> (vEnv, fEnv, [])
             | dec :: decr ->
@@ -207,23 +212,65 @@ module CodeGeneration =
                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
                     (vEnv2, fEnv2, code1 @ code2)
                 | FunDec(tyOpt, f, xs, body) ->
-                    // todo: bind function
-                    // type funEnv = Map<string, label * Typ option * ParamDecs>
-                    // type ParamDecs = (Typ * string) list
                     let rec decsList decs = 
                         match decs with
                         | [] -> []
                         | (VarDec(t,n))::rest -> (t,n)::decsList rest
                         | _ -> failwith "Functions cant take functions as input"
-                    let fEnv2:funEnv = Map.add f (newLabel(), tyOpt, decsList xs) fEnv
-                    //Add codegen for function body
-                    let (vEnv2, fEnv2, code2) = addv decr vEnv fEnv2
+                    let label =  newLabel()
+                    let varDescs = decsList xs
+                    let fEnv1 = Map.add f (label, tyOpt, varDescs) fEnv
+                    let tempEnv = Map.add TMP_FUNCTION_STR ("", None, decsList xs) fEnv1
 
-                    failwith "makeGlobalEnvs: function/procedure declarations not supported yet"
+                    
+
+                    let (vEnv1, code) = List.fold (fun (vInnerEnv, instr) (typ, var) -> 
+                                                let (newVEnv, nInstr) = allocate LocVar (typ, var) vInnerEnv 
+                                                (newVEnv, instr @ nInstr))
+                                            (vEnv, []) varDescs
+                    let skipLabel = newLabel()
+                    let code1 = GOTO skipLabel :: Label label :: code @ CompStm vEnv1 tempEnv body @ [ Label skipLabel ]
+
+                    let (vEnv2, fEnv2, code2) = addv decr vEnv fEnv1
+                    (vEnv2, fEnv2, code1 @ code2)
         addv decs (Map.empty, 0) Map.empty
 
     /// CP prog gives the code for a program prog
     let CP(P(decs, stms)) =
         let _ = resetLabels()
         let ((gvM, _) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
-        initCode @ CompStms gvEnv fEnv stms @ [ STOP ]
+        let tmp = initCode @ CompStms gvEnv fEnv stms @ [ STOP ]
+        tmp
+
+(*
+code // Allocate stack space of length lng
+<sl>
+INCSP -lng
+*)
+
+(*
+INCSP 1 // Declare x
+
+GOTO "progStart" //Needs to jump over declaration of f
+
+Label "f" // Declare f
+
+PRINTI // Print y
+CSTI 1 // Push 1 to stack
+ADD // Add y and 1
+RET 1 // Return y
+
+Label "progStart"
+
+CSTI 0 // Address of x
+CSTI 2 // Parameter for function call
+CALL "f" 1 //Function call
+
+STI // Store value in x address
+INCSP -1
+CSTI 0 // x address
+LDI // Load x value
+PRINTI //Print x value 
+INCSP -1
+
+*)

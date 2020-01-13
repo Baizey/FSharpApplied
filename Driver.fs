@@ -8,6 +8,9 @@ open Machine
 open ParserUtil
 open CompilerUtil
 
+open ASTUtil
+open PostScript
+
 module Driver =
     // Taken from https://en.wikibooks.org/wiki/F_Sharp_Programming/Higher_Order_Functions#A_Timer_Function
     let duration f =
@@ -87,8 +90,10 @@ module Driver =
     [<EntryPoint>]
     let main argv =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
-        let tree = parseFromFile "Ex0.gc"
+        let tree = parseFromFile "Ex7.gc"
+        postScriptWrapperAst tree "test"
         let tcp = tcP tree
         let code = CP tree
+        printfn "%A" code
         let stack = goTrace tree
         0

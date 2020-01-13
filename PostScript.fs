@@ -3,6 +3,8 @@ namespace Project1
 open System.IO
 open System.Text
 open AndrewKennedyTree
+open ASTUtil
+open GuardedCommands.Frontend.AST
 
 module PostScript =
     // Change these to change size of prints
@@ -95,3 +97,10 @@ module PostScript =
     let postScriptSaveResult (tree: 'a PosTree) (extent: Extent) (filepath: string) =
         let result = postScriptStringConcat tree extent
         postScriptSaveResultString result filepath
+
+    let postScriptWrapper (tree: 'a Tree) (filename: string) = 
+        let (postree, extents) = designTree tree
+        postScriptSaveResult postree extents filename
+
+    let postScriptWrapperAst (ast: Program) (filename: string) =
+        postScriptWrapper (convertToNodes ast) filename

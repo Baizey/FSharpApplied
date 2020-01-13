@@ -41,7 +41,7 @@
         <Content Include="Examples\mul.gc" />
         <Content Include="Examples\A0_1.gc" />
         <Compile Include="AndrewKennedyTranslation.fs" />
-        <Compile Include="AST.fs" />
+        <Compile Include="ASTUtil.fs" />
         <Compile Include="PostScript.fs" />
         <Compile Include="TreeGenerator.fs" />
         <Compile Include="Driver.fs" />

@@ -39,6 +39,7 @@ module TypeCheck =
     and tcNaryFunction (gtenv: Map<string, Typ>) ltenv f es = 
         match gtenv.Item f with
         | FTyp(expl, Some(t)) -> 
+            if es.Length <> expl.Length then failwith "number of given arguments does not match the number of arguments the function defines"
             if List.forall (fun (e1, e2) -> e1 = e2) (List.zip (List.map (fun x -> tcExpr gtenv ltenv x) es) expl) then t
             else failwith "function call types are mismatched"
         | _ -> failwith "Function either has no return type, or structure is wrong"
@@ -87,12 +88,10 @@ module TypeCheck =
         | Ass(acc, e) ->
             if tcA gtenv ltenv acc = tcExpr gtenv ltenv e then ()
             else failwith "illtyped assignment"
-        | Return(a) -> match a with 
-                       | Some(e) -> let t = tcExpr gtenv ltenv e
-                                    let rt = Map.find "function" ltenv
-                                    if t = rt then () else failwith "Return type wrong"
-                       | None -> failwith "Cant return nothing"
-
+        | Return(Some(a)) ->
+                        let t = tcExpr gtenv ltenv a
+                        let rt = Map.find "function" ltenv
+                        if t = rt then () else failwith "Return type wrong"
         | Do(GC(l))
         | Alt(GC(l)) -> match (List.forall (fun (e,_) -> (tcExpr gtenv ltenv e = BTyp)) l) with
                                          | true -> List.iter (fun (_,stms) -> List.iter (tcStm gtenv ltenv) stms) l
