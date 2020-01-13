@@ -40,6 +40,7 @@
         <None Include="Examples\Swap.gc" />
         <Content Include="Examples\mul.gc" />
         <Content Include="Examples\A0_1.gc" />
+        <Content Include="Examples\pointer.gc" />
         <Compile Include="AndrewKennedyTranslation.fs" />
         <Compile Include="ASTUtil.fs" />
         <Compile Include="PostScript.fs" />

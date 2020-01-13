@@ -1,0 +1,10 @@
+﻿begin
+    a : ^int, b : int;
+    
+    b := 1;
+    
+    a := &b;
+    
+    print a^;
+    
+end

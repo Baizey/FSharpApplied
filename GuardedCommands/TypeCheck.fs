@@ -13,6 +13,7 @@ module TypeCheck =
         function
         | N _ -> ITyp
         | B _ -> BTyp
+        | Addr e -> PTyp (tcA gtenv ltenv e)
         | Access acc -> tcA gtenv ltenv acc
 
         | Apply(f, [ e ]) when List.exists (fun x -> x = f) [ "-"; "!" ] -> tcMonadic gtenv ltenv f e
@@ -64,7 +65,8 @@ module TypeCheck =
                 match (tcExpr gtenv ltenv i) with
                 | ITyp _ -> findArrayType a
                 | _ -> failwith "tcA: array index needs to be int"
-        | ADeref e -> failwith "tcA: pointer dereferencing not supported yes"
+        | ADeref (e) -> tcExpr gtenv ltenv e
+            // failwith "tcA: pointer dereferencing not supported yes"
     and findArrayType arr =
         match arr with
         | ATyp(typ, _) -> findArrayType typ
@@ -86,7 +88,9 @@ module TypeCheck =
             if tcA gtenv ltenv acc = tcExpr gtenv ltenv e then tcStm gtenv ltenv (MulAss(accs, es))
             else failwith "illtyped multi assignment"
         | Ass(acc, e) ->
-            if tcA gtenv ltenv acc = tcExpr gtenv ltenv e then ()
+            let a =  tcA gtenv ltenv acc
+            let b = tcExpr gtenv ltenv e
+            if a = b then ()
             else failwith "illtyped assignment"
         | Return(Some(a)) ->
                         let t = tcExpr gtenv ltenv a
