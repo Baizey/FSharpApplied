@@ -39,10 +39,16 @@ module TypeCheck =
     and tcNaryFunction (gtenv: Map<string, Typ>) ltenv f es = 
         match gtenv.Item f with
         | FTyp(expl, Some(t)) -> 
+            let test = expl
             if es.Length <> expl.Length then failwith "number of given arguments does not match the number of arguments the function defines"
-            if List.forall (fun (e1, e2) -> e1 = e2) (List.zip (List.map (fun x -> tcExpr gtenv ltenv x) es) expl) then t
+            if List.forall (fun (e1, e2) -> tcEquality e1 e2) (List.zip (List.map (fun x -> tcExpr gtenv ltenv x) es) expl) then t
             else failwith "function call types are mismatched"
         | _ -> failwith "Function either has no return type, or structure is wrong"
+
+    and tcEquality typ1 typ2 = 
+        match (typ1, typ2) with
+        | (ATyp(t1, _), ATyp(t2, _)) -> tcEquality t1 t2
+        | (t1, t2) -> t1 = t2
 
     and tcNaryProcedure gtenv ltenv f es = failwith "type check: procedures not supported yet"
 

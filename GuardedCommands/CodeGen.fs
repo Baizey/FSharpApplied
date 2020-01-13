@@ -183,11 +183,29 @@ module CodeGeneration =
             *)
 
         | Block([], stms) -> CompStms varEnv funEnv stms
-        | Block(decs, stms) -> failwith "Block not implemented for dec list"
+        | Block(decs, stms) ->  // Allocate stack space of length lng
+                                let rec decsList decs = //This should be a global function is used way to many times
+                                    match decs with
+                                    | [] -> []
+                                    | (VarDec(t,n))::rest -> (t,n)::decsList rest
+                                    | _ -> failwith "Functions cant declare functions"
+
+                                let varDescs = decsList decs
+                                let (vEnv1, code1) = List.fold (fun (env,l) (t,n) -> let (a,b) = allocate LocVar (t, n) env
+                                                                                     (a,l@b)) (varEnv,[]) varDescs
+                                // <sl>
+                                let code2 = CompStms vEnv1 funEnv stms
+                                // INCSP -lng
+                                code1 @ code2 @ [INCSP (-1*List.length decs)]
+                                //failwith "Block not implemented for dec list"
         // Function return
         | Return(Some(expr)) -> 
             let (_, _, list) = funEnv.Item TMP_FUNCTION_STR
-            CompExpr varEnv funEnv expr @ [RET list.Length] 
+            let localVars = Map.filter (fun _ (var, _) -> match var with 
+                                                            | LocVar(_) -> true
+                                                            | GloVar(_) -> false
+                                ) (fst varEnv) |> Map.count
+            CompExpr varEnv funEnv expr @ [RET (list.Length + localVars) ]
 
         | _ -> failwith "CS: this statement is not supported yet"
 
