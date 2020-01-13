@@ -91,7 +91,7 @@ module CodeGeneration =
         | AVar x ->
             match Map.find x (fst varEnv) with
             | (GloVar addr, _) -> [ CSTI addr ]
-            | (LocVar addr, _) -> [ GETBP; CSTI addr; ADD ]
+            | (LocVar offset, _) -> [ GETBP; CSTI offset; ADD ]
         | AIndex(AIndex(a, b), e) ->
             failwith "CompAccess: array of arrays not supported"
         | AIndex(acc, e) ->
@@ -107,13 +107,16 @@ module CodeGeneration =
         | ATyp((ATyp (a, b)), Some size) ->
             failwith "allocate: array of arrays not supported"
         | ATyp(innerType, Some size) ->
-            let (newVarEnv, code) = List.fold (fun (env, code) _ ->
-                let (env, newCode) = (allocate kind (innerType, "") env)
-                (env, code @ newCode)) (varEnv, []) (List.init size (fun _ -> 0))
-            let (_, depth) = newVarEnv
-            let (env, newCode) = (allocate kind (innerType, x) newVarEnv)
-            let lastCode = (CompAccess env Map.empty (AVar(x))) @ [ CSTI (depth - size); STI; INCSP -1 ]
-            (env, code @ newCode @ lastCode)
+            let (_, depth) = varEnv
+            let (newVarEnv, code) = ((env, depth + size), [INCSP size])
+            
+            let (env', newCode) = (allocate kind (innerType, x) newVarEnv)
+            let test = kind 0
+            let addr = match test with
+                        | GloVar(_) -> depth
+                        | LocVar(_) -> depth - size
+            let lastCode = (CompAccess env' Map.empty (AVar(x))) @ [ CSTI (addr); STI; INCSP -1 ]
+            (env', code @ newCode @ lastCode)
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
             let code = [ INCSP 1 ]
