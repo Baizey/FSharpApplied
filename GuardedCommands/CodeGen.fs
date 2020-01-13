@@ -73,8 +73,10 @@ module CodeGeneration =
                 | "<=" -> [SWAP ; LT ; NOT]
                 | _ -> failwith "CE: this case is not possible"
             CompExpr varEnv funEnv e1 @ CompExpr varEnv funEnv e2 @ ins
-        | Func(f,es) -> (List.fold (fun s v -> s @ CompExpr varEnv funEnv v) [] es) @
-                        [CALL (List.length es, f)]
+        | Func(f,es) -> let (flabel,_,_) = Map.find f funEnv
+                        //let flabel = newLabel() 
+                        (List.fold (fun s v -> s @ CompExpr varEnv funEnv v) [] es) @
+                        [CALL (List.length es, flabel)]
                         //failwith "function call not implemented yet"
         | _ -> failwith "CE: not supported yet"
 
@@ -106,7 +108,7 @@ module CodeGeneration =
                 (env, code @ newCode)) (varEnv, []) (List.init size (fun _ -> 0))
             let (_, depth) = newVarEnv
             let (env, newCode) = (allocate kind (innerType, x) newVarEnv)
-            let lastCode = (CompAccess env funEnv (AVar(x))) @ (CompExpr env funEnv (N(depth - size))) @ [ STI;  INCSP -1 ]
+            let lastCode = (CompAccess env (funEnv Seq.empty) (AVar(x))) @ (CompExpr env (funEnv Seq.empty) (N(depth - size))) @ [ STI;  INCSP -1 ]
             (env, code @ newCode @ lastCode)
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
@@ -206,7 +208,17 @@ module CodeGeneration =
                     (vEnv2, fEnv2, code1 @ code2)
                 | FunDec(tyOpt, f, xs, body) ->
                     // todo: bind function
-                    let (vEnv2, fEnv2, code2) = addv decr vEnv fEnv
+                    // type funEnv = Map<string, label * Typ option * ParamDecs>
+                    // type ParamDecs = (Typ * string) list
+                    let rec decsList decs = 
+                        match decs with
+                        | [] -> []
+                        | (VarDec(t,n))::rest -> (t,n)::decsList rest
+                        | _ -> failwith "Functions cant take functions as input"
+                    let fEnv2:funEnv = Map.add f (newLabel(), tyOpt, decsList xs) fEnv
+                    //Add codegen for function body
+                    let (vEnv2, fEnv2, code2) = addv decr vEnv fEnv2
+
                     failwith "makeGlobalEnvs: function/procedure declarations not supported yet"
         addv decs (Map.empty, 0) Map.empty
 
