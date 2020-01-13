@@ -41,7 +41,8 @@ rule tokenize =
   | whitespace  { tokenize lexbuf }
   | newline     { lexbuf.EndPos <- lexbuf.EndPos.NextLine; tokenize lexbuf }
   | int         { INT<| Int32.Parse(LexBuffer<_>.LexemeString lexbuf) }
-  | "^"         { HAT } 
+  | "^"         { DEREF } 
+  | "&"         { REF }
   | "("         { LP  } 
   | ")"         { RP  }
   | "["         { LSP }

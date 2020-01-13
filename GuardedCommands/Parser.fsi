@@ -35,6 +35,8 @@ type token =
   | RP
   | RCP
   | RSP
+  | REF
+  | DEREF
   | ITYP
   | BTYP
   | FUNC
@@ -78,6 +80,8 @@ type tokenId =
     | TOKEN_RP
     | TOKEN_RCP
     | TOKEN_RSP
+    | TOKEN_REF
+    | TOKEN_DEREF
     | TOKEN_ITYP
     | TOKEN_BTYP
     | TOKEN_FUNC
