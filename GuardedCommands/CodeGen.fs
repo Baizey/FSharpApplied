@@ -257,7 +257,16 @@ GOTO "progStart" //Needs to jump over declaration of f
 
 Label "f" // Declare f
 
+GETBP //
+CSTI 0 // Address for y
+ADD 
+LDI // Load y
 PRINTI // Print y
+INCSP -1
+GETBP //
+CSTI 0 // Address for y
+ADD 
+LDI // Load y
 CSTI 1 // Push 1 to stack
 ADD // Add y and 1
 RET 1 // Return y

@@ -8,7 +8,7 @@ open GuardedCommands.Frontend.AST
 %token <string> NAME
 %token FUNC RETURN
 %token ITYP BTYP
-%token HAT
+%token REF DEREF
 %token LP LCP LSP RP RCP RSP
 %token IF FI DO OD BEGIN END 
 %token COMMA COLON SEMI BAR TO
