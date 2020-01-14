@@ -47,11 +47,18 @@ module TypeCheck =
             false
 
     and tcNaryFunction (gtenv: Env) (ltenv: Env) (f: string) (es: Exp list): Typ = 
-        match gtenv.Item f with
-        | FTyp(ts, Some(t)) ->
-            if tcNaryArgsChecker gtenv ltenv ts es then t
-            else failwith "function call types are mismatched"
-        | _ -> failwith "Function either has no return type, or structure is wrong"
+        let func = 
+            match Map.tryFind f gtenv with
+            | None -> match Map.tryFind f ltenv with
+                      | None -> failwith "Function does not exists"
+                      | Some(a) -> a
+            | Some(a) -> a
+
+        match func with
+            | FTyp(ts, Some(t)) ->
+                if tcNaryArgsChecker gtenv ltenv ts es then t
+                else failwith "function call types are mismatched"
+            | _ -> failwith "Function either has no return type, or structure is wrong"
 
     and tcEquality (typ1: Typ) (typ2: Typ): bool = 
         match (typ1, typ2) with
