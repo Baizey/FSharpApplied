@@ -40,6 +40,7 @@ type token =
   | ITYP
   | BTYP
   | FUNC
+  | PROC
   | RETURN
   | NAME of (string)
   | STRING of (string)
@@ -85,6 +86,7 @@ type tokenId =
     | TOKEN_ITYP
     | TOKEN_BTYP
     | TOKEN_FUNC
+    | TOKEN_PROC
     | TOKEN_RETURN
     | TOKEN_NAME
     | TOKEN_STRING
@@ -100,7 +102,6 @@ type nonTerminalId =
     | NONTERM_BasicTyp
     | NONTERM_IntOpt
     | NONTERM_Typ
-    | NONTERM_TypOpt
     | NONTERM_DecNameList
     | NONTERM_Dec
     | NONTERM_DecList
