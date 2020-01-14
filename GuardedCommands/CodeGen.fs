@@ -108,10 +108,7 @@ module CodeGeneration =
             failwith "allocate: array of arrays not supported"
         | ATyp(innerType, Some size) ->
             let newEnv = (Map.add x (kind (fdepth + size), (ATyp(innerType, Some size))) env, fdepth + size + 1)
-            let addr = match kind 0 with
-                        | GloVar(_) -> fdepth
-                        | LocVar(_) -> fdepth + 2 // likely wont work in recursion, but works for simple functions
-            let arrayRefCode = (CompAccess newEnv Map.empty (AVar(x))) @ [ CSTI (addr); STI; INCSP -1 ]
+            let arrayRefCode = (CompAccess newEnv Map.empty (AVar(x))) @ [ CSTI fdepth; STI; INCSP -1 ]
             (newEnv, [INCSP (size + 1)] @ arrayRefCode)
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
@@ -247,10 +244,12 @@ module CodeGeneration =
                     let fEnv1 = Map.add f (label, tyOpt, varDescs) fEnv
                     let tempEnv = Map.add TMP_FUNCTION_STR ("", None, decsList xs) fEnv1
 
-                    let (lv,_) = List.fold (fun ((env,b),a) (t,n) -> (((Map.add n (LocVar(a),t) env),b),a+1)) (vEnv,0) varDescs
+                    let ((lv,i),a) = List.fold (fun ((env,b),a) (t,n) -> (((Map.add n (LocVar(a),t) env),b),a+1)) (vEnv,0) varDescs
+
+                    let vEn = lv,a
 
                     let skipLabel = newLabel()
-                    let code1 = GOTO skipLabel :: Label label :: CompStm lv tempEnv body @ [ Label skipLabel ]
+                    let code1 = GOTO skipLabel :: Label label :: CompStm vEn tempEnv body @ [ Label skipLabel ]
                     let (vEnv2, fEnv2, code2) = addv decr vEnv fEnv1
                     (vEnv2, fEnv2, code1 @ code2)
         addv decs (Map.empty, 0) Map.empty
