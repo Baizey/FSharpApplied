@@ -82,14 +82,14 @@ module TypeCheck =
             | Some t -> t
         | AIndex(acc, i) ->
             match (tcA gtenv ltenv acc) with
-            | a ->
+            | ATyp(a, _) ->
                 match (tcExpr gtenv ltenv i) with
                 | ITyp _ -> findArrayType a
                 | _ -> failwith "tcA: array index needs to be int"
+            | _ -> failwith "Wait, this isn't an array!"
         | ADeref e -> match tcExpr gtenv ltenv e with
             | PTyp a -> a
             | _ -> failwith "Attempted to dereference something that wasn't a pointer"
-            // failwith "tcA: pointer dereferencing not supported yes"
     and findArrayType arr =
         match arr with
         | ATyp(typ, _) -> findArrayType typ
