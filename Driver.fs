@@ -1,4 +1,4 @@
-﻿namespace Project1
+namespace Project1
 
 open GuardedCommands.Util
 open GuardedCommands.Frontend.TypeCheck
@@ -97,5 +97,6 @@ module Driver =
         printf "[ "
         code |> Seq.iter (printf "%A, ")
         printfn "]"
-        let stack = go tree
+        let _ = goTrace tree
+        go tree
         0
