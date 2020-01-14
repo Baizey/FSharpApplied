@@ -12,6 +12,7 @@
 
 
     <ItemGroup>
+        <None Include="Examples\SwapSimple.gc" />
         <None Include="Examples\MulVarDec01.gc" />
         <Content Include="Examples\A0_0.gc" />
         <None Include="Examples\A0.gc" />

@@ -272,7 +272,10 @@ module CodeGeneration =
                     let fEnv1 = Map.add f (label, tyOpt, varDescs) fEnv
                     let tempEnv = Map.add TMP_FUNCTION_STR ("", None, decsList xs) fEnv1
 
-                    let ((lv,i),a) = List.fold (fun ((env,b),a) (t,n) -> (((Map.add n (LocVar(a),t) env),b),a+1)) (vEnv,0) varDescs
+                    let arrTest typ a = match typ with
+                                        | ATyp(_, _) -> GloVar a
+                                        | _ -> LocVar a
+                    let ((lv,i),a) = List.fold (fun ((env,b),a) (t,n) -> (((Map.add n (arrTest t a,t) env),b),a+1)) (vEnv,0) varDescs
 
                     let vEn = lv,a
 
