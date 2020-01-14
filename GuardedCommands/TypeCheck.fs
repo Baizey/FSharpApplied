@@ -120,7 +120,7 @@ module TypeCheck =
         | FunDec(topt, f, decs, stm) -> 
             match topt with
             | Some(rtyp) -> tcFDecs (decsNames decs) //Check all input arguements are unique
-                            let ftyp = FTyp(List.rev (decsTypes decs),Some(rtyp))
+                            let ftyp = FTyp(decsTypes decs, Some(rtyp))
                             let ltenv = Map.add f ftyp (Map.add "function" rtyp (tcGDecs Map.empty decs))
                             tcStm gtenv ltenv stm //Check stm is wellformed and return types correct.
                             Map.add f ftyp gtenv //Add function to enviroment
