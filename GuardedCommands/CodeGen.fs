@@ -168,7 +168,10 @@ module CodeGeneration =
             Label labels.Head :: command l 1
             (* Instruction structure
             <lstart>
-            <ltest1> <cond1> <JMPZERO ltest2>
+            // <ltest1> not necessary here, but kept because it ensures that we don't 
+            // have to make a special case for it in the code, and it doesn't change 
+            // the behavior of the code at all
+            <ltest1> <cond1> <JMPZERO ltest2> 
             <stm1> <GOTO lstart>
             <ltest2> <cond2> <JMPZERO ltest3>
             <stm2> <GOTO lstart>

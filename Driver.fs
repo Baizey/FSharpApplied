@@ -90,10 +90,12 @@ module Driver =
     [<EntryPoint>]
     let main argv =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
-        let tree = parseFromFile "A2.gc"
+        let tree = parseFromFile "A3.gc"
         postScriptWrapperAst tree "test"
         let tcp = tcP tree
         let code = CP tree
-        printfn "%A" code
+        printf "[ "
+        code |> Seq.iter (printf "%A, ")
+        printfn "]"
         let stack = goTrace tree
         0

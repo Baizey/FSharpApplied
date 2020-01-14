@@ -39,8 +39,7 @@ module TypeCheck =
 
     and tcNaryFunction (gtenv: Map<string, Typ>) ltenv f es = 
         match gtenv.Item f with
-        | FTyp(expl, Some(t)) -> 
-            let test = expl
+        | FTyp(expl, Some(t)) ->
             if es.Length <> expl.Length then failwith "number of given arguments does not match the number of arguments the function defines"
             if List.forall (fun (e1, e2) -> tcEquality e1 e2) (List.zip (List.map (fun x -> tcExpr gtenv ltenv x) es) expl) then t
             else failwith "function call types are mismatched"
