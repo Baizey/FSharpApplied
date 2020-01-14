@@ -227,6 +227,10 @@ module CodeGeneration =
             //                                                | GloVar(_) -> false
             //                    ) (fst varEnv) |> Map.count
             CompExpr varEnv funEnv expr @ [ RET localVars ]
+        | Call(f, es) ->
+            let (flabel,_,_) = Map.find f funEnv
+            (List.fold (fun s v -> s @ CompExpr varEnv funEnv v) [] es) @
+            [CALL (List.length es, flabel); INCSP -1]
 
         | _ -> failwith "CS: this statement is not supported yet"
 
@@ -267,7 +271,10 @@ module CodeGeneration =
                     let vEn = lv,a
 
                     let skipLabel = newLabel()
-                    let code1 = GOTO skipLabel :: Label label :: CompStm vEn tempEnv body @ [ Label skipLabel ]
+                    let procRet = match tyOpt with
+                                    | Some(_) -> []
+                                    | None -> [ RET (xs.Length - 1) ]
+                    let code1 = GOTO skipLabel :: Label label :: CompStm vEn tempEnv body @ procRet @ [ Label skipLabel ]
                     let (vEnv2, fEnv2, code2) = addv decr vEnv fEnv1
                     (vEnv2, fEnv2, code1 @ code2)
         addv decs (Map.empty, 0) Map.empty
