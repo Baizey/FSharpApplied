@@ -1,10 +1,14 @@
 ﻿begin
-    a : ^int, b : int;
-    
-    b := 1;
-    
-    a := &b;
-    
-    print a^;
-    
+    a : int,
+    function f1() : int = {
+        b : ^int, c : int;
+        b := &a;
+        c := 1;
+        print b^;
+        b := &c;
+        print b^;
+        return -1;
+    };
+    a := 5;
+    print f1();
 end

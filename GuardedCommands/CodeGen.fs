@@ -134,9 +134,13 @@ module CodeGeneration =
         | PrintLn e ->
             CompExpr varEnv funEnv e @ [ PRINTI
                                          INCSP -1 ]
-        | MulAss([], []) -> []
-        | MulAss(acc::accs, e::es) ->
-            CompStm varEnv funEnv (Ass(acc, e)) @ CompStm varEnv funEnv (MulAss(accs, es))
+        | MulAss ([], []) -> []
+        | MulAss(acc::accs, []) ->
+            CompStm varEnv funEnv (MulAss(accs, []))
+                @ CompAccess varEnv funEnv acc
+                @ [SWAP; STI; INCSP -1]
+        | MulAss(accs, e::es) ->
+            CompExpr varEnv funEnv e @ CompStm varEnv funEnv (MulAss(accs, es))
         | Ass(acc, e) ->
             CompAccess varEnv funEnv acc @ CompExpr varEnv funEnv e @ [ STI; INCSP -1 ]
         | Alt(GC(l)) -> 
