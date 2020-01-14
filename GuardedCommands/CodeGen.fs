@@ -251,10 +251,12 @@ module CodeGeneration =
             | dec :: decr ->
                 match dec with
                 | MulVarDec(typ, varList) ->
-                    List.fold (fun (vEnv, fEnv, code) name ->
+                    let (vEnv1, _, code1) = (List.fold (fun (vEnv, fEnv, code) name ->
                         let (vEnv2, fEnv2, code2) = addv [VarDec(typ, name)] vEnv fEnv
                         (vEnv2, fEnv2, code @ code2))
-                        (vEnv, fEnv, []) varList
+                        (vEnv, fEnv, []) varList)
+                    let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
+                    (vEnv2, fEnv2, code1 @ code2)
                 | VarDec(typ, var) ->
                     let (vEnv1, code1) = allocate GloVar (typ, var) vEnv
                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
