@@ -107,16 +107,12 @@ module CodeGeneration =
         | ATyp((ATyp (a, b)), Some size) ->
             failwith "allocate: array of arrays not supported"
         | ATyp(innerType, Some size) ->
-            let (_, depth) = varEnv
-            let (newVarEnv, code) = ((env, depth + size), [INCSP size])
-            
-            let (env', newCode) = (allocate kind (innerType, x) newVarEnv)
-            let test = kind 0
-            let addr = match test with
-                        | GloVar(_) -> depth
-                        | LocVar(_) -> depth + 2 // likely wont work in recursion, but works for simple functions
-            let lastCode = (CompAccess env' Map.empty (AVar(x))) @ [ CSTI (addr); STI; INCSP -1 ]
-            (env', code @ newCode @ lastCode)
+            let newEnv = (Map.add x (kind (fdepth + size), (ATyp(innerType, Some size))) env, fdepth + size + 1)
+            let addr = match kind 0 with
+                        | GloVar(_) -> fdepth
+                        | LocVar(_) -> fdepth + 2 // likely wont work in recursion, but works for simple functions
+            let arrayRefCode = (CompAccess newEnv Map.empty (AVar(x))) @ [ CSTI (addr); STI; INCSP -1 ]
+            (newEnv, [INCSP (size + 1)] @ arrayRefCode)
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
             let code = [ INCSP 1 ]
@@ -211,7 +207,6 @@ module CodeGeneration =
                                 | (LocVar(_), _) -> acc + 1
                                 | _ -> acc
                             ) 0 (fst varEnv)
-                            + 2 // Needs to also remove the filler for functions [random, -999] data
             //let localVars = Map.filter (fun _ (var, _) -> match var with 
             //                                                | LocVar(_) -> true
             //                                                | GloVar(_) -> false
