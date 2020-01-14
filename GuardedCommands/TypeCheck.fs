@@ -47,6 +47,7 @@ module TypeCheck =
 
     and tcEquality typ1 typ2 = 
         match (typ1, typ2) with
+        | (PTyp t1), (PTyp t2) -> tcEquality t1 t2
         | (ATyp(t1, _), ATyp(t2, _)) -> tcEquality t1 t2
         | (t1, t2) -> t1 = t2
 
@@ -95,7 +96,7 @@ module TypeCheck =
         | Ass(acc, e) ->
             let a =  tcA gtenv ltenv acc
             let b = tcExpr gtenv ltenv e
-            if a = b then ()
+            if tcEquality a b then ()
             else failwith "illtyped assignment"
         | Return(Some(a)) ->
                         let t = tcExpr gtenv ltenv a

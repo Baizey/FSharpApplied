@@ -82,6 +82,7 @@ module CodeGeneration =
                         (List.fold (fun s v -> s @ CompExpr varEnv funEnv v) [] es) @
                         [CALL (List.length es, flabel)]
                         //failwith "function call not implemented yet"
+        | Addr acc -> CompAccess varEnv funEnv acc
         | _ -> failwith "CE: not supported yet"
 
 
@@ -107,7 +108,8 @@ module CodeGeneration =
                 | (LocVar _, _) ->
                     v @ [LDI] @ i @ [ADD; GETBP; ADD]
             | _ -> failwith "CA: this was supposed to be a variable name"
-        | ADeref e -> failwith "CA: pointer dereferencing not supported yet"
+        | ADeref e -> (CompExpr varEnv funEnv e)
+            // failwith "CA: pointer dereferencing not supported yet"
 
 
     (* Bind declared variable in env and generate code to allocate it: *)
