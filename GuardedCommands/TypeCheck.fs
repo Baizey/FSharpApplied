@@ -6,11 +6,12 @@ open Machine
 open GuardedCommands.Frontend.AST
 
 module TypeCheck =
+    type Env = Map<string, Typ>
 
     /// tcE gtenv ltenv e gives the type for expression e on the basis of type environments gtenv and ltenv
     /// for global and local variables
-    let rec tcExpr gtenv ltenv =
-        function
+    let rec tcExpr (gtenv: Env) (ltenv: Env) (exp: Exp): Typ =
+        match exp with
         | N _ -> ITyp
         | B _ -> BTyp
         | Addr e -> PTyp (tcA gtenv ltenv e)
@@ -24,39 +25,53 @@ module TypeCheck =
 
         | _ -> failwith "tcE: not supported yet"
 
-    and tcMonadic gtenv ltenv f e =
+    and tcMonadic (gtenv: Env) (ltenv: Env) (f: string) (e: Exp): Typ =
         match (f, tcExpr gtenv ltenv e) with
         | ("-", ITyp) -> ITyp
         | ("!", BTyp) -> BTyp
         | _ -> failwith "illegal/illtyped monadic expression"
 
-    and tcDyadic gtenv ltenv f e1 e2 =
+    and tcDyadic (gtenv: Env) (ltenv: Env) (f: string) (e1: Exp) (e2: Exp): Typ =
         match (f, tcExpr gtenv ltenv e1, tcExpr gtenv ltenv e2) with
         | (o, ITyp, ITyp) when List.exists (fun x -> x = o) [ "+"; "*"; "-" ] -> ITyp
         | (o, ITyp, ITyp) when List.exists (fun x -> x = o) [ "="; "<" ; "<>" ; "<=" ; ">"] -> BTyp
         | (o, BTyp, BTyp) when List.exists (fun x -> x = o) [ "&&"; "="; "<>"; "||" ] -> BTyp
         | _ -> failwith ("illegal/illtyped dyadic expression: " + f)
 
-    and tcNaryFunction (gtenv: Map<string, Typ>) ltenv f es = 
+    and tcNaryArgsChecker (gtenv: Env) (ltenv: Env) (ts: Typ list) (es: Exp list): bool =
+        if es.Length <> ts.Length then 
+            failwith "number of given arguments does not match the number of arguments the function/procedure defines"
+        if List.forall (fun (e1, e2) -> tcEquality e1 e2) (List.zip (List.map (fun x -> tcExpr gtenv ltenv x) es) ts) then 
+            true
+        else 
+            false
+
+    and tcNaryFunction (gtenv: Env) (ltenv: Env) (f: string) (es: Exp list): Typ = 
         match gtenv.Item f with
-        | FTyp(expl, Some(t)) ->
-            if es.Length <> expl.Length then failwith "number of given arguments does not match the number of arguments the function defines"
-            if List.forall (fun (e1, e2) -> tcEquality e1 e2) (List.zip (List.map (fun x -> tcExpr gtenv ltenv x) es) expl) then t
+        | FTyp(ts, Some(t)) ->
+            if tcNaryArgsChecker gtenv ltenv ts es then t
             else failwith "function call types are mismatched"
         | _ -> failwith "Function either has no return type, or structure is wrong"
 
-    and tcEquality typ1 typ2 = 
+    and tcEquality (typ1: Typ) (typ2: Typ): bool = 
         match (typ1, typ2) with
         | (ATyp(t1, _), ATyp(t2, _)) -> tcEquality t1 t2
         | (t1, t2) -> t1 = t2
 
-    and tcNaryProcedure gtenv ltenv f es = failwith "type check: procedures not supported yet"
+    and tcNaryProcedure (gtenv: Env) (ltenv: Env) (f: string) (es: Exp list): unit =
+        match gtenv.Item f with 
+        | FTyp(ts, None) -> 
+            if tcNaryArgsChecker gtenv ltenv ts es then ()
+            else failwith "procedure call types are mismatched"
+        | _ -> failwith "Procedure either has return type, or structure is wrong"
+        
+        //failwith "type check: procedures not supported yet"
 
 
     /// tcA gtenv ltenv e gives the type for access acc on the basis of type environments gtenv and ltenv
     /// for global and local variables
-    and tcA gtenv ltenv =
-        function
+    and tcA (gtenv: Env) (ltenv: Env) (acc: Access): Typ =
+        match acc with
         | AVar x ->
             match Map.tryFind x ltenv with
             | None ->
@@ -80,8 +95,8 @@ module TypeCheck =
 
     /// tcS gtenv ltenv retOpt s checks the well-typeness of a statement s on the basis of type environments gtenv and ltenv
     /// for global and local variables and the possible type of return expressions
-    and tcStm gtenv ltenv =
-        function
+    and tcStm (gtenv: Env) (ltenv: Env) (stm: Stm): unit =
+        match stm with
         | PrintLn e -> ignore (tcExpr gtenv ltenv e)
         | MulAss([], []) ->
             ()
@@ -109,10 +124,11 @@ module TypeCheck =
         | Block(decs, stms) -> let innerLtenv = tcGDecs gtenv decs
                                let locEnv = Map.fold (fun acc str typ -> Map.add str typ acc) ltenv innerLtenv
                                List.iter (tcStm gtenv locEnv) stms
+        | Call(f, es) -> tcNaryProcedure gtenv ltenv f es
         | _ -> failwith "tcS: this statement is not supported yet"
 
-    and tcGDec gtenv =
-        function
+    and tcGDec (gtenv: Env) (dec: Dec): Env =
+        match dec with
         | VarDec(typ, str) -> Map.add str typ gtenv
         | MulVarDec(typ, strList) ->
             List.fold (fun state str -> tcGDec state (VarDec(typ, str))) gtenv strList
@@ -123,9 +139,13 @@ module TypeCheck =
                             let ltenv = Map.add f ftyp (Map.add "function" rtyp (tcGDecs Map.empty decs))
                             tcStm gtenv ltenv stm //Check stm is wellformed and return types correct.
                             Map.add f ftyp gtenv //Add function to enviroment
-            | _ -> failwith "Functions need a return type"
-    and tcGDecs gtenv =
-        function
+            | None -> tcFDecs (decsNames decs)
+                      let ftyp = FTyp(decsTypes decs, None)
+                      let ltenv = Map.add f ftyp (tcGDecs Map.empty decs)
+                      tcStm gtenv ltenv stm
+                      Map.add f ftyp gtenv
+    and tcGDecs (gtenv: Env) (decs: Dec list): Env =
+        match decs with
         | dec :: decs -> tcGDecs (tcGDec gtenv dec) decs
         | _ -> gtenv
     and decsNames decs = 

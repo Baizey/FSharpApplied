@@ -6,7 +6,7 @@ open GuardedCommands.Frontend.AST
 %token <bool> BOOL
 %token <string> STRING
 %token <string> NAME
-%token FUNC RETURN
+%token FUNC PROC RETURN
 %token ITYP BTYP
 %token REF DEREF
 %token LP LCP LSP RP RCP RSP
@@ -59,18 +59,15 @@ Typ:
     | Typ LSP IntOpt RSP              { ATyp($1, $3) }
     | BasicTyp                        { $1 }
 
-TypOpt:
-                                      { None }
-    | Typ                             { Some($1) }
-
 DecNameList:
     | NAME COMMA DecNameList          { $1 :: $3 }
     | NAME                            { [$1] }
 
 Dec: 
-    | NAME COLON Typ                  { VarDec($3,$1) }
-    | DecNameList COLON Typ           { MulVarDec($3, $1) }
-    | FUNC NAME LP DecList RP COLON TypOpt EQ Stm { FunDec($7, $2, $4, $9) }
+    | NAME COLON Typ                            { VarDec($3,$1) }
+    | DecNameList COLON Typ                     { MulVarDec($3, $1) }
+    | PROC NAME LP DecList RP EQ Stm            { FunDec(None, $2, $4, $7) }
+    | FUNC NAME LP DecList RP COLON Typ EQ Stm  { FunDec(Some($7), $2, $4, $9) }
 
 DecList: 
                                       { [] }
@@ -100,6 +97,7 @@ Stm:
   | IF GuardedCommand FI              { Alt $2 }
   | DO GuardedCommand OD              { Do $2  }
   | RETURN ExpOpt                     { Return $2 }
+  | NAME LP ExpList RP                { Call($1, $3) }
 
 StmList:
                                       { [] }
