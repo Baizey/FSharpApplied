@@ -90,12 +90,23 @@ module CodeGeneration =
         match access with
         | AVar x ->
             match Map.find x (fst varEnv) with
-            | (GloVar addr, _) -> [ CSTI addr ]
-            | (LocVar offset, _) -> [ GETBP; CSTI offset; ADD ]
+            | (GloVar addr, _) ->
+                [ CSTI addr ]
+            | (LocVar offset, _) ->
+                [ GETBP; CSTI offset; ADD ]
         | AIndex(AIndex(a, b), e) ->
             failwith "CompAccess: array of arrays not supported"
         | AIndex(acc, e) ->
-            CompAccess varEnv funEnv acc @ [LDI] @ (CompExpr varEnv funEnv e) @ [ADD]
+            let v = (CompAccess varEnv funEnv acc)
+            let i = (CompExpr varEnv funEnv e)
+            match acc with
+            | AVar x ->
+                match Map.find x (fst varEnv) with
+                | (GloVar _, _) ->
+                    v @ [LDI] @ i @ [ADD]
+                | (LocVar _, _) ->
+                    v @ [LDI] @ i @ [ADD; GETBP; ADD]
+            | _ -> failwith "CA: this was supposed to be a variable name"
         | ADeref e -> failwith "CA: pointer dereferencing not supported yet"
 
 
@@ -184,6 +195,8 @@ module CodeGeneration =
                                     match decs with
                                     | [] -> []
                                     | (VarDec(t,n))::rest -> (t,n)::decsList rest
+                                    | MulVarDec(typ, varList)::rest ->
+                                        List.map (fun x -> (typ, x)) varList @ decsList rest
                                     | _ -> failwith "Functions cant declare functions"
 
                                 let varDescs = decsList decs
