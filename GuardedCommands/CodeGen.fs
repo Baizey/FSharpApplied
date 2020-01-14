@@ -114,7 +114,7 @@ module CodeGeneration =
             let test = kind 0
             let addr = match test with
                         | GloVar(_) -> depth
-                        | LocVar(_) -> depth - size
+                        | LocVar(_) -> depth + 2 // likely wont work in recursion, but works for simple functions
             let lastCode = (CompAccess env' Map.empty (AVar(x))) @ [ CSTI (addr); STI; INCSP -1 ]
             (env', code @ newCode @ lastCode)
         | _ ->
@@ -211,6 +211,7 @@ module CodeGeneration =
                                 | (LocVar(_), _) -> acc + 1
                                 | _ -> acc
                             ) 0 (fst varEnv)
+                            + 2 // Needs to also remove the filler for functions [random, -999] data
             //let localVars = Map.filter (fun _ (var, _) -> match var with 
             //                                                | LocVar(_) -> true
             //                                                | GloVar(_) -> false
