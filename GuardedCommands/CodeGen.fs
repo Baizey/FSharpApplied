@@ -219,15 +219,15 @@ module CodeGeneration =
         // Function return
         | Return(Some(expr)) -> 
             let (_, _, list) = funEnv.Item TMP_FUNCTION_STR
-
+            let inVar = List.length list
             let localVars = Map.fold (fun acc _ (var, typ) -> 
                                 match (var, typ) with
                                 | (LocVar(_), ATyp(_, Some(i))) -> acc + i + 1
-                                | (LocVar(_), _) -> acc + 1
-                                | (GloVar(_), ATyp(_,None)) -> acc+1 //Messing up in recursion i think
+                                | (LocVar(a), _) when a >= inVar -> acc + 1
+                                //| (GloVar(_), ATyp(_,None)) -> acc+1 //Messing up in recursion i think
                                 | _ -> acc
                             ) 0 (fst varEnv)
-            CompExpr varEnv funEnv expr @ [ RET localVars ]
+            CompExpr varEnv funEnv expr @ [ RET (inVar + localVars) ]
         | Call(f, es) ->
             let (flabel,_,_) = Map.find f funEnv
             (List.fold (fun s v -> s @ CompExpr varEnv funEnv v) [] es) @
