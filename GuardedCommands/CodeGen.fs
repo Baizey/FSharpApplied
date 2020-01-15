@@ -103,6 +103,8 @@ module CodeGeneration =
             match acc with
             | AVar x ->
                 match Map.find x (fst varEnv) with
+                | (GloVar _, ATyp(_,None)) ->
+                    v @ i @ [ADD]
                 | (GloVar _, _) ->
                     v @ [LDI] @ i @ [ADD]
                 | (LocVar _, _) ->
@@ -224,6 +226,7 @@ module CodeGeneration =
                                 match (var, typ) with
                                 | (LocVar(_), ATyp(_, Some(i))) -> acc + i + 1
                                 | (LocVar(_), _) -> acc + 1
+                                | (GloVar(_), ATyp(_,None)) -> acc+1
                                 | _ -> acc
                             ) 0 (fst varEnv)
             //let localVars = Map.filter (fun _ (var, _) -> match var with 
