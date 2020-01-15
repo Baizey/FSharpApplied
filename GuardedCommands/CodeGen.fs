@@ -81,7 +81,6 @@ module CodeGeneration =
         | Func(f,es) -> let (flabel,_,_) = Map.find f funEnv
                         (List.fold (fun s v -> s @ CompExpr varEnv funEnv v) [] es) @
                         [CALL (List.length es, flabel)]
-                        //failwith "function call not implemented yet"
         | Addr acc -> CompAccess varEnv funEnv acc
         | _ -> failwith "CE: not supported yet"
 
@@ -111,7 +110,6 @@ module CodeGeneration =
                     v @ [LDI] @ i @ [ADD; GETBP; ADD]
             | _ -> failwith "CA: this was supposed to be a variable name"
         | ADeref e -> (CompExpr varEnv funEnv e)
-            // failwith "CA: pointer dereferencing not supported yet"
 
 
     (* Bind declared variable in env and generate code to allocate it: *)
@@ -229,10 +227,6 @@ module CodeGeneration =
                                 | (GloVar(_), ATyp(_,None)) -> acc+1
                                 | _ -> acc
                             ) 0 (fst varEnv)
-            //let localVars = Map.filter (fun _ (var, _) -> match var with 
-            //                                                | LocVar(_) -> true
-            //                                                | GloVar(_) -> false
-            //                    ) (fst varEnv) |> Map.count
             CompExpr varEnv funEnv expr @ [ RET localVars ]
         | Call(f, es) ->
             let (flabel,_,_) = Map.find f funEnv
@@ -297,45 +291,4 @@ module CodeGeneration =
         let ((gvM, _) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
         let tmp = initCode @ CompStms gvEnv fEnv stms @ [ STOP ]
         tmp
-
-(*
-code // Allocate stack space of length lng
-<sl>
-INCSP -lng
-*)
-
-(*
-INCSP 1 // Declare x
-
-GOTO "progStart" //Needs to jump over declaration of f
-
-Label "f" // Declare f
-
-GETBP //
-CSTI 0 // Address for y
-ADD 
-LDI // Load y
-PRINTI // Print y
-INCSP -1
-GETBP //
-CSTI 0 // Address for y
-ADD 
-LDI // Load y
-CSTI 1 // Push 1 to stack
-ADD // Add y and 1
-RET 1 // Return y
-
-Label "progStart"
-
-CSTI 0 // Address of x
-CSTI 2 // Parameter for function call
-CALL "f" 1 //Function call
-
-STI // Store value in x address
-INCSP -1
-CSTI 0 // x address
-LDI // Load x value
-PRINTI //Print x value 
-INCSP -1
-
-*)
+        

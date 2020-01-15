@@ -67,7 +67,14 @@ module TypeCheck =
         | (t1, t2) -> t1 = t2
 
     and tcNaryProcedure (gtenv: Env) (ltenv: Env) (f: string) (es: Exp list): unit =
-        match gtenv.Item f with 
+        let proc = 
+            match Map.tryFind f gtenv with
+            | None -> match Map.tryFind f ltenv with
+                      | None -> failwith "Procedure does not exists"
+                      | Some(a) -> a
+            | Some(a) -> a
+
+        match proc with 
         | FTyp(ts, None) -> 
             if tcNaryArgsChecker gtenv ltenv ts es then ()
             else failwith "procedure call types are mismatched"
