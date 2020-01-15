@@ -96,11 +96,7 @@ module CodeGeneration =
                 [ CSTI addr ]
             | (LocVar offset, _) ->
                 [ GETBP; CSTI offset; ADD ]
-        | AIndex(AIndex(a, b), size) ->
-            let v = CompAccess varEnv funEnv (AIndex(a, b))
-            let i = (CompExpr varEnv funEnv size)
-            let scope = findScope a varEnv
-            v @ [LDI] @ i @ [ADD] @ scope
+        // Handles all arrays
         | AIndex(acc, e) ->
             let v = (CompAccess varEnv funEnv acc)
             let i = (CompExpr varEnv funEnv e)
