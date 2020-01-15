@@ -99,23 +99,23 @@ module CodeGeneration =
         | AIndex(AIndex(a, b), size) ->
             let i = (CompExpr varEnv funEnv size)
             let v = CompAccess varEnv funEnv (AIndex(a, b))
-            v @ [LDI; LDI] @ i @ [ADD; GETBP; ADD]
+            let scope = findScope a varEnv
+            v @ [LDI] @ scope @ [LDI] @ i @ [ADD] @ scope
         | AIndex(acc, e) ->
             let v = (CompAccess varEnv funEnv acc)
             let i = (CompExpr varEnv funEnv e)
-            match acc with
-            | AVar x ->
-                match Map.find x (fst varEnv) with
-                //| (GloVar _, ATyp(_,None)) ->
-                //    v @ [GETBP ; ADD ; LDI] @ i @ [ADD]
-                | (GloVar _, _) ->
-                    v @ [LDI] @ i @ [ADD]
-                | (LocVar _, _) ->
-                    v @ [LDI] @ i @ [ADD; GETBP; ADD]
-            | _ -> failwith "CA: this was supposed to be a variable name"
+            v @ [LDI] @ i @ [ADD] @ findScope acc varEnv
         | ADeref e -> (CompExpr varEnv funEnv e)
-    and accessDeepArray ((acc, i)): instr list =
-        []
+    and findScope (arr:Access) (varEnv:varEnv): instr list =
+        match arr with
+        | AIndex(AIndex(a, b), _) -> findScope (AIndex(a, b)) varEnv
+        | AIndex(a, _) -> findScope a varEnv
+        | AVar a ->
+                match Map.find a (fst varEnv) with
+                | (GloVar _, _) -> []
+                | (LocVar _, _) -> [GETBP; ADD]
+        | _ -> failwith "CA: this was supposed to be an array or variable name"
+        
         
 
     (* Bind declared variable in env and generate code to allocate it: *)
