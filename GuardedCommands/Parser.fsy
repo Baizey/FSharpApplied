@@ -43,7 +43,8 @@ Main:
    Prog EOF                            { $1 }
 
 Prog:
-    BEGIN DecList SEMI StmList END        { P($2, $4) }
+    BEGIN StmList END                  { P([], $2) }
+  | BEGIN DecList SEMI StmList END     { P($2, $4) }
 
 BasicTyp:
     BTYP                              { BTyp }
