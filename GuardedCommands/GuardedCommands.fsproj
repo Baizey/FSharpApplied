@@ -13,6 +13,7 @@
 
     <ItemGroup>
     <Compile Include="AST.fs" />
+      <Compile Include="CodeGenOpt_LocalFuncs.fs" />
     <None Include="Parser.fsy" />
     <None Include="Lexer.fsl" />
     <Compile Include="Parser.fs" />

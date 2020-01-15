@@ -3,6 +3,7 @@ namespace Project1
 open GuardedCommands.Util
 open GuardedCommands.Frontend.TypeCheck
 open GuardedCommands.Backend.CodeGeneration
+open GuardedCommands.Backend
 open Machine
 
 open ParserUtil
@@ -90,13 +91,19 @@ module Driver =
     [<EntryPoint>]
     let main argv =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
-        let tree = parseFromFile "QuickSortV1.gc"
+        let tree = parseFromFile "Ex7.gc"
         postScriptWrapperAst tree "test"
         let tcp = tcP tree
-        let code = CP tree
+        let codeRaw = CP tree
+        let codeOpt = CodeGenerationOpt.CP tree
+        printfn "Non-optimized code:"
         printf "[ "
-        code |> Seq.iter (printf "%A, ")
+        codeRaw |> Seq.iter (printf "%A, ")
         printfn "]"
-        let _ = goTrace tree
-        go tree
+        printfn "Optimized code:"
+        printf "[ "
+        codeOpt |> Seq.iter (printf "%A, ")
+        printfn "]"
+        let _ = goTraceOpt tree
+        goOpt tree
         0

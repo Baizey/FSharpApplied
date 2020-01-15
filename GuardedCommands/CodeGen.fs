@@ -131,7 +131,7 @@ module CodeGeneration =
             (newEnv, code)
 
     /// CS vEnv fEnv s gives the code for a statement s on the basis of a variable and a function environment
-    let rec CompStm (varEnv: varEnv) (funEnv: funEnv) (stm:Stm)=
+    let rec CompStm (varEnv: varEnv) (funEnv: funEnv) (stm: Stm): instr list =
         match stm with
         | PrintLn e ->
             CompExpr varEnv funEnv e @ [ PRINTI
@@ -230,6 +230,7 @@ module CodeGeneration =
                                 | _ -> acc
                             ) 0 (fst varEnv)
             CompExpr varEnv funEnv expr @ [ RET (inVar + localVars) ]
+        | Return(None) -> failwith "Return nothing not implemented" 
         | Call(f, es) ->
             let (flabel,_,_) = Map.find f funEnv
             (List.fold (fun s v -> s @ CompExpr varEnv funEnv v) [] es) @
