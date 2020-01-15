@@ -104,7 +104,7 @@ module CodeGeneration =
             | AVar x ->
                 match Map.find x (fst varEnv) with
                 | (GloVar _, ATyp(_,None)) ->
-                    v @ i @ [ADD]
+                    v @ [GETBP ; ADD ; LDI] @ i @ [ADD]
                 | (GloVar _, _) ->
                     v @ [LDI] @ i @ [ADD]
                 | (LocVar _, _) ->
