@@ -96,8 +96,10 @@ module CodeGeneration =
                 [ CSTI addr ]
             | (LocVar offset, _) ->
                 [ GETBP; CSTI offset; ADD ]
-        | AIndex(AIndex(a, b), e) ->
-            failwith "CompAccess: array of arrays not supported"
+        | AIndex(AIndex(a, b), size) ->
+            let i = (CompExpr varEnv funEnv size)
+            let v = CompAccess varEnv funEnv (AIndex(a, b))
+            v @ [LDI; LDI] @ i @ [ADD; GETBP; ADD]
         | AIndex(acc, e) ->
             let v = (CompAccess varEnv funEnv acc)
             let i = (CompExpr varEnv funEnv e)
@@ -112,23 +114,51 @@ module CodeGeneration =
                     v @ [LDI] @ i @ [ADD; GETBP; ADD]
             | _ -> failwith "CA: this was supposed to be a variable name"
         | ADeref e -> (CompExpr varEnv funEnv e)
-
+    and accessDeepArray ((acc, i)): instr list =
+        []
+        
 
     (* Bind declared variable in env and generate code to allocate it: *)
     let rec allocate (kind: int -> Var) (typ, x) (varEnv: varEnv) =
         let (env, fdepth) = varEnv
         match typ with
         | ATyp(_, None) -> failwith "Array needs to be given a size"
-        | ATyp((ATyp (a, b)), Some size) ->
-            failwith "allocate: array of arrays not supported"
+        | ATyp((ATyp (a, b)), Some s) ->
+            // Gets the sizes specified [1][2][3] etc
+            let sizes = List.rev (deepArraySize (ATyp((ATyp (a, b)), Some s)))
+            // Generates the code which allocates the needed space and sets up pointers
+            let (code, depth) = allocateDeepArray fdepth sizes
+            // Stores the array in varEnv and updates fdepth size
+            let newEnv = (Map.add x (kind (depth - 1), (ATyp((ATyp (a, b)), Some s))) env, depth)
+            (newEnv, code)
         | ATyp(innerType, Some size) ->
             let newEnv = (Map.add x (kind (fdepth + size), (ATyp(innerType, Some size))) env, fdepth + size + 1)
-            let arrayRefCode = (CompAccess newEnv Map.empty (AVar(x))) @ [ CSTI fdepth; STI; INCSP -1 ]
-            (newEnv, [INCSP (size + 1)] @ arrayRefCode)
+            (newEnv, [INCSP size; CSTI fdepth])
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
             let code = [ INCSP 1 ]
             (newEnv, code)
+    and deepArraySize (typ:Typ) : int list =
+        match typ with
+        | ATyp(ATyp(a, b), Some size) -> size :: deepArraySize (ATyp(a, b))
+        | ATyp(_, Some size) -> [size]
+        | _ -> failwith "This isn't an array!"
+    and allocateDeepArray (depth:int) (sizes:int list) : instr list * int =
+        match sizes with
+        | [] -> failwith "deep array: Not supposed to happen"
+        // Bottom layer is a normal array
+        | [size] -> ([ INCSP size; CSTI depth ], depth + size + 1)
+        // All other layers has to point to their sub-arrays and have a normal p at the end
+        | size::sizes ->
+            let (deepArrayCode, depths, depth) = (List.fold (fun (code, depths, curr) _ ->
+                    let (tCode, depth) = allocateDeepArray curr sizes
+                    (code @ tCode, (depth - 1) :: depths, depth))
+                    ([], [], depth)
+                    (List.init size (fun _ -> 0)))
+            let arrayCode = List.rev (List.map (fun item -> CSTI item) depths) @ [CSTI depth]
+            (deepArrayCode @ arrayCode, depth + size + 1)
+            
+            
 
     /// CS vEnv fEnv s gives the code for a statement s on the basis of a variable and a function environment
     let rec CompStm (varEnv: varEnv) (funEnv: funEnv) (stm:Stm)=
@@ -224,7 +254,7 @@ module CodeGeneration =
             let inVar = List.length list
             let localVars = Map.fold (fun acc _ (var, typ) -> 
                                 match (var, typ) with
-                                | (LocVar(_), ATyp(_, Some(i))) -> acc + i + 1
+                                | (LocVar(_), ATyp(b, Some(i))) -> acc + calculateArraySize (ATyp(b, Some(i)))
                                 | (LocVar(a), _) when a >= inVar -> acc + 1
                                 //| (GloVar(_), ATyp(_,None)) -> acc+1 //Messing up in recursion i think
                                 | _ -> acc
@@ -238,6 +268,12 @@ module CodeGeneration =
         | _ -> failwith "CS: this statement is not supported yet"
 
     and CompStms (vEnv: varEnv) (fEnv: funEnv) stms = List.collect (CompStm vEnv fEnv) stms
+    and calculateArraySize arr : int =
+        match arr with
+        | ATyp(ATyp(a, b), Some i) -> (i + 1) + i * calculateArraySize (ATyp(a, b))
+        | ATyp(_, Some i) -> i + 1
+        | _ -> failwith "This is not supposed to happen"
+        
 
     (* ------------------------------------------------------------------- *)
 
