@@ -224,7 +224,7 @@ module CodeGeneration =
                                 match (var, typ) with
                                 | (LocVar(_), ATyp(_, Some(i))) -> acc + i + 1
                                 | (LocVar(_), _) -> acc + 1
-                                | (GloVar(_), ATyp(_,None)) -> acc+1
+                                | (GloVar(_), ATyp(_,None)) -> acc+1 //Messing up in recursion i think
                                 | _ -> acc
                             ) 0 (fst varEnv)
             CompExpr varEnv funEnv expr @ [ RET localVars ]
@@ -272,7 +272,7 @@ module CodeGeneration =
                     let arrTest typ a = match typ with
                                         | ATyp(_, _) -> GloVar a
                                         | _ -> LocVar a
-                    let ((lv,i),a) = List.fold (fun ((env,b),a) (t,n) -> (((Map.add n (arrTest t a,t) env),b),a+1)) (vEnv,0) varDescs
+                    let ((lv,_),a) = List.fold (fun ((env,b),a) (t,n) -> (((Map.add n (arrTest t a,t) env),b),a+1)) (vEnv,0) varDescs
 
                     let vEn = lv,a
 
