@@ -153,6 +153,7 @@ module TypeCheck =
             | None -> tcFDecs (decsNames decs)
                       let ftyp = FTyp(decsTypes decs, None)
                       let ltenv = Map.add f ftyp (tcGDecs Map.empty decs)
+                      if tcReturnStm stm then failwith "Procedure contains return statement" else ()
                       tcStm gtenv ltenv stm
                       Map.add f ftyp gtenv
     and tcGDecs (gtenv: Env) (decs: Dec list): Env =
