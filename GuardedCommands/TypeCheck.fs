@@ -94,20 +94,28 @@ module TypeCheck =
                 | None -> failwith ("no declaration for : " + x)
                 | Some t -> t
             | Some t -> t
+        | AIndex(AIndex(a, b), i) ->
+            let typ = tcA gtenv ltenv (AIndex(a, b))
+            let b = tcExpr gtenv ltenv i
+            match b with
+            | ITyp _ ->
+                match typ with
+                | ATyp(a, _) ->
+                    a
+                | _ -> failwith "tcA: this is not an array"
+            | _ -> failwith "tcA: array index needs to be int"
         | AIndex(acc, i) ->
-            match (tcA gtenv ltenv acc) with
+            let res = tcA gtenv ltenv acc
+            match res with
             | ATyp(a, _) ->
-                match (tcExpr gtenv ltenv i) with
-                | ITyp _ -> findArrayType a
+                let b = tcExpr gtenv ltenv i
+                match b with
+                | ITyp _ -> a
                 | _ -> failwith "tcA: array index needs to be int"
             | _ -> failwith "Wait, this isn't an array!"
         | ADeref e -> match tcExpr gtenv ltenv e with
             | PTyp a -> a
             | _ -> failwith "Attempted to dereference something that wasn't a pointer"
-    and findArrayType arr =
-        match arr with
-        | ATyp(typ, _) -> findArrayType typ
-        | _ -> arr
 
 
     /// tcS gtenv ltenv retOpt s checks the well-typeness of a statement s on the basis of type environments gtenv and ltenv
