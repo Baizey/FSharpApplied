@@ -140,7 +140,23 @@ module CodeGenerationOpt =
         | Ass(acc, e) -> CompAccess vEnv fEnv acc (CompExpr vEnv fEnv e (STI :: addINCSP -1 k))
 
         | Block([], stms) -> CompStms vEnv fEnv stms k
-        | Block(decs, stms) -> failwith "CompStm: blocks with definitions not made yet"
+        | Block(decs, stms) -> 
+            let rec decsList decs = //This should be a global function is used way to many times
+                match decs with
+                | [] -> []
+                | (VarDec(t,n))::rest -> (t,n)::decsList rest
+                | MulVarDec(typ, varList)::rest ->
+                    List.map (fun x -> (typ, x)) varList @ decsList rest
+                | _ -> failwith "Functions cant declare functions"
+
+            let varDescs = decsList decs
+            let (vEnv1, code1) = List.fold (fun (env,l) (t,n) -> let (a,b) = allocate LocVar (t, n) env
+                                                                 (a,l@b)) (vEnv, []) varDescs
+
+            // Todo: See if we can't get rid of this @
+            code1 @ CompStms vEnv1 fEnv stms (INCSP (-1*List.length decs) :: k)
+        
+            //failwith "CompStm: blocks with definitions not made yet"
         | Alt(GC(l)) -> 
             let (endlabel, k1) = addLabel k
             let k1 = STOP :: k1
