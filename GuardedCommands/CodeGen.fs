@@ -97,10 +97,10 @@ module CodeGeneration =
             | (LocVar offset, _) ->
                 [ GETBP; CSTI offset; ADD ]
         | AIndex(AIndex(a, b), size) ->
-            let i = (CompExpr varEnv funEnv size)
             let v = CompAccess varEnv funEnv (AIndex(a, b))
+            let i = (CompExpr varEnv funEnv size)
             let scope = findScope a varEnv
-            v @ [LDI] @ scope @ [LDI] @ i @ [ADD] @ scope
+            v @ [LDI] @ i @ [ADD] @ scope
         | AIndex(acc, e) ->
             let v = (CompAccess varEnv funEnv acc)
             let i = (CompExpr varEnv funEnv e)
@@ -129,8 +129,8 @@ module CodeGeneration =
             // Generates the code which allocates the needed space and sets up pointers
             let (code, depth) = allocateDeepArray fdepth sizes
             // Stores the array in varEnv and updates fdepth size
-            let newEnv = (Map.add x (kind (depth - 1), (ATyp((ATyp (a, b)), Some s))) env, depth)
-            (newEnv, code)
+            let newEnv = (Map.add x (kind (depth), (ATyp((ATyp (a, b)), Some s))) env, depth + 1)
+            (newEnv, code @ [CSTI (depth - List.head sizes)])
         | ATyp(innerType, Some size) ->
             let newEnv = (Map.add x (kind (fdepth + size), (ATyp(innerType, Some size))) env, fdepth + size + 1)
             (newEnv, [INCSP size; CSTI fdepth])
@@ -147,16 +147,16 @@ module CodeGeneration =
         match sizes with
         | [] -> failwith "deep array: Not supposed to happen"
         // Bottom layer is a normal array
-        | [size] -> ([ INCSP size; CSTI depth ], depth + size + 1)
+        | [size] -> ([ INCSP size ], depth + size)
         // All other layers has to point to their sub-arrays and have a normal p at the end
-        | size::sizes ->
+        | size::s::sizes ->
             let (deepArrayCode, depths, depth) = (List.fold (fun (code, depths, curr) _ ->
-                    let (tCode, depth) = allocateDeepArray curr sizes
-                    (code @ tCode, (depth - 1) :: depths, depth))
+                    let (tCode, depth) = allocateDeepArray curr (s::sizes)
+                    (code @ tCode, (depth - s) :: depths, depth))
                     ([], [], depth)
                     (List.init size (fun _ -> 0)))
-            let arrayCode = List.rev (List.map (fun item -> CSTI item) depths) @ [CSTI depth]
-            (deepArrayCode @ arrayCode, depth + size + 1)
+            let arrayCode = List.rev (List.map (fun item -> CSTI item) depths)
+            (deepArrayCode @ arrayCode, depth + size)
             
             
 
