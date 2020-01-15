@@ -90,6 +90,8 @@ module CodeGeneration =
         match access with
         | AVar x ->
             match Map.find x (fst varEnv) with
+            | (GloVar addr, ATyp(_,None)) ->
+                [ CSTI addr ; GETBP ; ADD ]
             | (GloVar addr, _) ->
                 [ CSTI addr ]
             | (LocVar offset, _) ->
@@ -102,8 +104,8 @@ module CodeGeneration =
             match acc with
             | AVar x ->
                 match Map.find x (fst varEnv) with
-                | (GloVar _, ATyp(_,None)) ->
-                    v @ [GETBP ; ADD ; LDI] @ i @ [ADD]
+                //| (GloVar _, ATyp(_,None)) ->
+                //    v @ [GETBP ; ADD ; LDI] @ i @ [ADD]
                 | (GloVar _, _) ->
                     v @ [LDI] @ i @ [ADD]
                 | (LocVar _, _) ->
