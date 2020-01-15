@@ -147,6 +147,7 @@ module TypeCheck =
             | Some(rtyp) -> tcFDecs (decsNames decs) //Check all input arguements are unique
                             let ftyp = FTyp(decsTypes decs, Some(rtyp))
                             let ltenv = Map.add f ftyp (Map.add "function" rtyp (tcGDecs Map.empty decs))
+                            if tcReturnStm stm then () else failwith "Function has no return statement"
                             tcStm gtenv ltenv stm //Check stm is wellformed and return types correct.
                             Map.add f ftyp gtenv //Add function to enviroment
             | None -> tcFDecs (decsNames decs)
@@ -172,6 +173,17 @@ module TypeCheck =
         match decs with
         | [] -> ()
         | d::rest -> if List.contains d rest then failwith "Multiple variable have the same name" else tcFDecs rest
+    and tcReturnStm (stm:Stm) =
+        match stm with
+        | Return(_) -> true
+        | Do(GC(b)) -> tcReturnGC b
+        | Alt(GC(b)) -> tcReturnGC b
+        | Block(_,stms) -> List.exists tcReturnStm stms
+        | _ -> false
+    and tcReturnGC (l) =
+        match l with
+        | [] -> false
+        | ((_,s)::rest) -> List.exists tcReturnStm s || tcReturnGC (rest)
     /// tcP prog checks the well-typeness of a program prog
     and tcP (P(decs, stms)) =
         let gtenv = tcGDecs Map.empty decs

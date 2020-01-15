@@ -90,7 +90,7 @@ module Driver =
     [<EntryPoint>]
     let main argv =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
-        let tree = parseFromFile "Swap.gc"
+        let tree = parseFromFile "A3.gc"
         postScriptWrapperAst tree "test"
         let tcp = tcP tree
         let code = CP tree
