@@ -254,7 +254,7 @@ module CodeGeneration =
             let inVar = List.length list
             let localVars = Map.fold (fun acc _ (var, typ) -> 
                                 match (var, typ) with
-                                | (LocVar(_), ATyp(b, Some(i))) -> acc + calculateArraySize (ATyp(b, Some(i)))
+                                | (LocVar(_), ATyp(b, Some(i))) -> acc + calculateArraySize (List.rev (deepArraySize (ATyp(b, Some(i)))))
                                 | (LocVar(a), _) when a >= inVar -> acc + 1
                                 //| (GloVar(_), ATyp(_,None)) -> acc+1 //Messing up in recursion i think
                                 | _ -> acc
@@ -268,10 +268,10 @@ module CodeGeneration =
         | _ -> failwith "CS: this statement is not supported yet"
 
     and CompStms (vEnv: varEnv) (fEnv: funEnv) stms = List.collect (CompStm vEnv fEnv) stms
-    and calculateArraySize arr : int =
-        match arr with
-        | ATyp(ATyp(a, b), Some i) -> (i + 1) + i * calculateArraySize (ATyp(a, b))
-        | ATyp(_, Some i) -> i + 1
+    and calculateArraySize (sizes:int list) : int =
+        match sizes with
+        | [i] -> i + 1
+        | i::xs -> (i + 1) + i * (calculateArraySize xs)
         | _ -> failwith "This is not supposed to happen"
         
 
