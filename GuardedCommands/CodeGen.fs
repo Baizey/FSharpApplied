@@ -122,7 +122,7 @@ module CodeGeneration =
         | ATyp((ATyp (a, b)), Some s) ->
             // Gets the sizes specified [1][2][3] etc
             let sizes = List.rev (deepArraySize (ATyp((ATyp (a, b)), Some s)))
-            // Generates the code which allocates the needed space and sets up pointers
+            // Generates the code which allocates the needed space and sets up inner pointers
             let (code, depth) = allocateDeepArray fdepth sizes
             // Stores the array in varEnv and updates fdepth size
             let newEnv = (Map.add x (kind (depth), (ATyp((ATyp (a, b)), Some s))) env, depth + 1)
