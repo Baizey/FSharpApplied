@@ -83,4 +83,7 @@ module CompilerUtil =
         tcP prog
         goTrace prog
 
-
+    /// execTest parses, type checks, compiles and runs every program in the Examples folder
+    /// for a maximum of x seconds before marking as failed
+    let execTest (x: int) =
+        ()

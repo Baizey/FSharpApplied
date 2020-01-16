@@ -12,19 +12,20 @@
 
 
     <ItemGroup>
-    <Compile Include="AST.fs" />
+      <Compile Include="AST.fs" />
       <Compile Include="CodeGenOpt_LocalFuncs.fs" />
-    <None Include="Parser.fsy" />
-    <None Include="Lexer.fsl" />
-    <Compile Include="Parser.fs" />
-    <Compile Include="Lexer.fs" />
-    <Compile Include="TypeCheck.fs" />
-    <Compile Include="CodeGen.fs" />
-    <Compile Include="CodeGenOpt.fs" />
-    <Compile Include="Util.fs" />
-    <Content Include="README.txt" />
-    <None Include="packages.config" />
-    <None Include="app.config" />
+      <Compile Include="CompilerSharedFuncs.fs" />
+      <None Include="Parser.fsy" />
+      <None Include="Lexer.fsl" />
+      <Compile Include="Parser.fs" />
+      <Compile Include="Lexer.fs" />
+      <Compile Include="TypeCheck.fs" />
+      <Compile Include="CodeGen.fs" />
+      <Compile Include="CodeGenOpt.fs" />
+      <Compile Include="Util.fs" />
+      <Content Include="README.txt" />
+      <None Include="packages.config" />
+      <None Include="app.config" />
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="FsLexYacc" Version="9.1.0" />
