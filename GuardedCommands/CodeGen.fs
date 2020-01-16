@@ -243,26 +243,24 @@ module CodeGeneration =
                                 let code2 = CompStms vEnv1 funEnv stms
                                 // INCSP -lng
                                 code1 @ code2 @ [INCSP (-1*List.length decs)]
-                                //failwith "Block not implemented for dec list"
+
         // Function return
-        | Return(Some(expr)) -> 
+        | Return(t) -> 
             let (_, _, list) = funEnv.Item TMP_FUNCTION_STR
             let inVar = List.length list
             let localVars = Map.fold (fun acc _ (var, typ) -> 
                                 match (var, typ) with
                                 | (LocVar(_), ATyp(b, Some(i))) -> acc + calculateArraySize (List.rev (deepArraySize (ATyp(b, Some(i)))))
                                 | (LocVar(a), _) when a >= inVar -> acc + 1
-                                //| (GloVar(_), ATyp(_,None)) -> acc+1 //Messing up in recursion i think
                                 | _ -> acc
                             ) 0 (fst varEnv)
-            CompExpr varEnv funEnv expr @ [ RET (inVar + localVars) ]
-        | Return(None) -> failwith "Return nothing not implemented" 
+            match t with
+            | Some(expr) -> CompExpr varEnv funEnv expr @ [ RET (inVar + localVars) ]
+            | None -> [ RET (localVars + inVar - 1) ]
         | Call(f, es) ->
             let (flabel,_,_) = Map.find f funEnv
             (List.fold (fun s v -> s @ CompExpr varEnv funEnv v) [] es) @
             [CALL (List.length es, flabel); INCSP -1]
-
-        //| _ -> failwith "CS: this statement is not supported yet"
 
     and CompStms (vEnv: varEnv) (fEnv: funEnv) stms = List.collect (CompStm vEnv fEnv) stms
     and calculateArraySize (sizes:int list) : int =
