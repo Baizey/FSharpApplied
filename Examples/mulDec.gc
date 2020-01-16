@@ -1,0 +1,12 @@
+begin
+ x,y,z : int,
+ function f(a,b,c : int) : int = {
+  return a+b+c
+};
+ x,y,z := 1,2,3;
+ print x;
+ print y;
+ print z;
+ print f(x,y,z)
+end
+ 

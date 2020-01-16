@@ -57,6 +57,7 @@
       <Content Include="Examples\pointer.gc" />
       <Content Include="Examples\simpleSwap.gc" />
       <None Include="Examples\boolean.gc" />
+      <None Include="Examples\mulDec.gc" />
       <None Include="Examples\return.gc" />
       <Compile Include="AndrewKennedyTranslation.fs" />
       <Compile Include="ASTUtil.fs" />

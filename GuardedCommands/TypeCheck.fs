@@ -9,6 +9,8 @@ open GuardedCommands.Util.CompilerSharedFuncs
 module TypeCheck =
     type Env = Map<string, Typ>
 
+    let TMP_FUNCTION_STR = "function"
+
     /// tcE gtenv ltenv e gives the type for expression e on the basis of type environments gtenv and ltenv
     /// for global and local variables
     let rec tcExpr (gtenv: Env) (ltenv: Env) (exp: Exp): Typ =
@@ -135,11 +137,13 @@ module TypeCheck =
             else failwith "illtyped multi assignment"
         | Return(Some(a)) ->
             let t = tcExpr gtenv ltenv a
-            let rt = Map.find "function" ltenv
-            if t = rt then () else failwith "Return type wrong"
+            let fTyp = Map.find TMP_FUNCTION_STR ltenv
+            match fTyp with
+            | FTyp(_,Some(rt)) when rt = t -> ()
+            | _ -> failwith "Return type wrong"
         | Return(None) -> 
-            let typ = Map.find "procedure" ltenv
-            match typ with
+            let fTyp = Map.find TMP_FUNCTION_STR ltenv
+            match fTyp with
             | FTyp(_,None) -> ()
             | _ -> failwith "Return nothing only works for procedures"
         | Alt(GC(l))
@@ -158,38 +162,30 @@ module TypeCheck =
             List.fold (fun state str -> tcGDec state (VarDec(typ, str))) gtenv strList
         | VarDec(typ, str) -> Map.add str typ gtenv
         | FunDec(topt, f, decs, stm) -> 
+            tcUniqueName (decsNames decs) //Check all input arguements are uniquely named
+            let ftyp = FTyp(decsTypes decs, topt)
+            let ltenv = Map.add f ftyp (Map.add TMP_FUNCTION_STR ftyp (tcGDecs Map.empty decs))
             match topt with
-            | Some(rtyp) -> tcFDecs (decsNames decs) //Check all input arguements are unique
-                            let ftyp = FTyp(decsTypes decs, Some(rtyp))
-                            let ltenv = Map.add f ftyp (Map.add "function" rtyp (tcGDecs Map.empty decs))
-                            if tcReturnStm stm then () else failwith "Function has no return statement"
+            | Some(rtyp) -> if tcHasReturnStm stm then () else failwith "Function has no return statement"
                             tcReturnStmLast stm
-                            tcStm gtenv ltenv stm //Check stm is wellformed and return types correct.
-                            Map.add f ftyp gtenv //Add function to enviroment
-            | None -> tcFDecs (decsNames decs)
-                      let ftyp = FTyp(decsTypes decs, None)
-                      let ltenv = Map.add f ftyp (Map.add "procedure" (FTyp([],None)) (tcGDecs Map.empty decs))
-                      tcStm gtenv ltenv stm
-                      Map.add f ftyp gtenv
+            | _ -> ()
+            tcStm gtenv ltenv stm //Check stm is wellformed and return types correct.
+            Map.add f ftyp gtenv //Add function to enviroment
     and tcGDecs (gtenv: Env) (decs: Dec list): Env =
         match decs with
         | dec :: decs -> tcGDecs (tcGDec gtenv dec) decs
         | _ -> gtenv
-    and tcFDecs decs =
-        match decs with
-        | [] -> ()
-        | d::rest -> if List.contains d rest then failwith "Multiple variable have the same name" else tcFDecs rest
-    and tcReturnStm (stm:Stm) =
+    and tcHasReturnStm (stm:Stm) =
         match stm with
         | Return(_) -> true
         | Do(GC(b))
         | Alt(GC(b)) -> tcReturnGC b
-        | Block(_,stms) -> List.exists tcReturnStm stms
+        | Block(_,stms) -> List.exists tcHasReturnStm stms
         | _ -> false
     and tcReturnGC (l) =
         match l with
         | [] -> false
-        | ((_,s)::rest) -> List.exists tcReturnStm s || tcReturnGC (rest)
+        | ((_,s)::rest) -> List.exists tcHasReturnStm s || tcReturnGC (rest)
     and tcReturnStmLast stm =
         match stm with
         | Return(_) -> ()

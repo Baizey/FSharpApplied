@@ -92,7 +92,7 @@ module Driver =
     let main argv =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
 
-        let tree = parseFromFile "return.gc"
+        let tree = parseFromFile "mulDec.gc"
         postScriptWrapperAst tree "test"
         let tcp = tcP tree
         let codeRaw = CP tree
@@ -106,10 +106,10 @@ module Driver =
         codeOpt |> Seq.iter (printf "%A, ")
         printfn "]"
         //let _ = goTraceOpt tree
-        goOpt tree
+        //goOpt tree
 
         // Test all files
         // Replace go with goOpt for optimized code
-        //execTest go 
+        execTest go 
 
         0
