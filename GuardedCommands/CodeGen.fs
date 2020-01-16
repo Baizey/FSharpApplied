@@ -255,7 +255,7 @@ module CodeGeneration =
             (List.fold (fun s v -> s @ CompExpr varEnv funEnv v) [] es) @
             [CALL (List.length es, flabel); INCSP -1]
 
-        | _ -> failwith "CS: this statement is not supported yet"
+        //| _ -> failwith "CS: this statement is not supported yet"
 
     and CompStms (vEnv: varEnv) (fEnv: funEnv) stms = List.collect (CompStm vEnv fEnv) stms
     and calculateArraySize (sizes:int list) : int =
