@@ -203,7 +203,7 @@ module CodeGenerationOpt =
             
             Label startlabel :: snd (command l k)
 
-        | Return(Some(expr)) -> 
+        | Return(rt) -> 
             let (_, _, list) = fEnv.Item TMP_FUNCTION_STR
             let inVar = List.length list
             let localVars = Map.fold (fun acc _ (var, typ) -> 
@@ -212,8 +212,10 @@ module CodeGenerationOpt =
                                 | (LocVar(a), _) when a >= inVar -> acc + 1
                                 | _ -> acc
                             ) 0 (fst vEnv)
-            CompExpr vEnv fEnv expr (RET (inVar + localVars) :: k)
-        | Return(None) -> failwith "CompStm: Return nothing not implemented" 
+            match rt with
+            | Some(expr) -> CompExpr vEnv fEnv expr (RET (inVar + localVars) :: k)
+            | None -> (RET (localVars + inVar - 1))::k
+
         | Call(f, es) ->
             let (flabel,_,_) = Map.find f fEnv
             CompExprs vEnv fEnv es (makeCall (List.length es) flabel (addINCSP (-1) k))
