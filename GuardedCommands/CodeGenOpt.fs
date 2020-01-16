@@ -220,7 +220,6 @@ module CodeGenerationOpt =
             let (flabel,_,_) = Map.find f fEnv
             CompExprs vEnv fEnv es (makeCall (List.length es) flabel (addINCSP (-1) k))
 
-        //| _ -> failwith "CS: this statement is not supported yet"
 
     and CompStms vEnv fEnv stms k =
         match stms with
@@ -272,7 +271,6 @@ module CodeGenerationOpt =
 
 
                     let code1 = GOTO skipLabel :: Label label :: CompStm vEn tempEnv body [] @ procRet @ [ Label skipLabel ]
-                    //failwith "makeGlobalEnvs: missing proper generation of code above"
                     let (vEnv2, fEnv2, code2) = addv decr vEnv fEnv1
                     (vEnv2, fEnv2, code1 @ code2)
         addv decs (Map.empty, 0) Map.empty
@@ -282,4 +280,5 @@ module CodeGenerationOpt =
     let CP(P(decs, stms)) =
         let _ = resetLabels()
         let ((gvM, _) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
-        initCode @ CompStms gvEnv fEnv stms [ STOP ]
+        //(initCode @ CompStms gvEnv fEnv stms [ STOP ])
+        SecondPassOpt (initCode @ CompStms gvEnv fEnv stms [ STOP ])

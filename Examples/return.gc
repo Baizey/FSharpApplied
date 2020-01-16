@@ -9,7 +9,7 @@ procedure p(z:int) = {
     if z = 1 -> print z; return 
      | z = 2 -> print z; return 
     fi;
-    print 2;
+    print -1;
   };
  x := f(1,2);
  p(x);

@@ -83,3 +83,40 @@ module CodeGenerationOptFuncs =
      (* ------------------------------------------------------------------- *)
 
      (* End code directly copied from Peter Sestoft *)
+
+    
+
+     let rec CombineINCST C =
+         match C with
+         | [] -> []
+         | INCSP n :: INCSP m :: rest -> CombineINCST (INCSP (m+n)::rest)
+         | CSTI 0 :: CSTI n :: ADD :: rest -> CombineINCST (CSTI n::rest)
+         | CSTI 0 :: GETBP :: ADD :: rest -> CombineINCST (GETBP::rest)
+         | a::rest -> a::CombineINCST rest
+
+     let rec CombineLabels (C:instr list) (lm : Map<label,label>) =
+         match C with
+         | [] -> ([],lm)
+         | Label l1 :: rest when Map.containsKey l1 lm -> CombineLabels (Label (Map.find l1 lm) :: rest) lm
+                                                          
+         | Label l1 :: Label l2 :: rest -> let K,M = CombineLabels (Label l2 :: rest) (Map.add l1 l2 lm) 
+                                           (K, Map.add l1 l2 M)
+         | Label l1 :: GOTO l2 ::rest -> let K,M = CombineLabels rest (Map.add l1 l2 lm) 
+                                         (K, Map.add l1 l2 M)
+         | a::rest -> let K,M = CombineLabels rest lm 
+                      (a::K,M)
+
+     let rec FixJumps C lm =
+         match C with
+         | [] -> []
+         | GOTO l :: rest when Map.containsKey l lm -> FixJumps (GOTO (Map.find l lm)::rest) lm
+         | IFZERO l :: rest when Map.containsKey l lm -> FixJumps (IFZERO (Map.find l lm)::rest) lm
+         | IFNZRO l :: rest when Map.containsKey l lm -> FixJumps (IFNZRO (Map.find l lm)::rest) lm
+         | CALL (n,l) ::rest when Map.containsKey l lm -> FixJumps (CALL (n,(Map.find l lm))::rest) lm
+         | a::rest -> a::FixJumps rest lm
+
+     let SecondPassOpt C = 
+         let K,M = CombineLabels (CombineINCST C) Map.empty 
+         FixJumps K M
+
+     
