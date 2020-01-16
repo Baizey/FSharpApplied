@@ -37,12 +37,15 @@ module ParserUtil =
             printfn "Error near line %d, character %d\n" pos.Line pos.Column
             failwith "parser termination"
 
-
     // Parse a file. (A statement is parsed)
-    let parseFromFile filename =
-        let path = "Examples/" + filename
-        if File.Exists(path) then parseString (File.ReadAllText(path))
+    let parseFromFileBase filename =
+        if File.Exists(filename) then parseString (File.ReadAllText(filename))
         else invalidArg "ParserUtil" "File not found"
+
+    let parseFromFile filename =
+        parseFromFileBase ("Examples/" + filename)
+
+    
 
 open ParserUtil
 
@@ -84,6 +87,22 @@ module CompilerUtil =
         goTrace prog
 
     /// execTest parses, type checks, compiles and runs every program in the Examples folder
-    /// for a maximum of x seconds before marking as failed
-    let execTest (x: int) =
-        ()
+    let execTest (go: Program -> unit) =
+        printfn "Testing all files..."
+
+        let testFiles = Directory.GetFiles("Examples", "*.gc", SearchOption.AllDirectories)
+
+        let rec testing (files: string list) (failed: (string * exn) list) =
+            match files with
+            | [] -> failed
+            | x :: t -> 
+                try
+                    let prog = parseFromFileBase x
+                    tcP prog
+                    go prog
+                    testing t failed
+                with
+                    | ex -> testing t ((x, ex) :: failed)
+
+        let failed = testing (Array.toList testFiles) List.empty
+        printfn "%A" failed
