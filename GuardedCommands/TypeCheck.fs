@@ -4,6 +4,7 @@
 open System
 open Machine
 open GuardedCommands.Frontend.AST
+open GuardedCommands.Util.CompilerSharedFuncs
 
 module TypeCheck =
     type Env = Map<string, Typ>
@@ -174,16 +175,6 @@ module TypeCheck =
         match decs with
         | dec :: decs -> tcGDecs (tcGDec gtenv dec) decs
         | _ -> gtenv
-    and decsNames decs = 
-        match decs with
-        | [] -> []
-        | (VarDec(_,n))::rest -> n::decsNames rest
-        | _ -> failwith "Functions cant take functions as input"
-    and decsTypes decs = 
-        match decs with
-        | [] -> []
-        | (VarDec(t,_))::rest -> t::decsTypes rest
-        | _ -> failwith "Functions cant take functions as input"
     and tcFDecs decs =
         match decs with
         | [] -> ()

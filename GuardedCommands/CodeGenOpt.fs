@@ -6,6 +6,7 @@ open Machine
 
 open GuardedCommands.Frontend.AST
 open GuardedCommands.Backend.CodeGenerationOptFuncs
+open GuardedCommands.Util.CompilerSharedFuncs
 
 module CodeGenerationOpt =
     // This string is used to add a known temporary string
@@ -165,14 +166,6 @@ module CodeGenerationOpt =
 
         | Block([], stms) -> CompStms vEnv fEnv stms k
         | Block(decs, stms) -> 
-            let rec decsList decs = //This should be a global function is used way to many times
-                match decs with
-                | [] -> []
-                | (VarDec(t,n))::rest -> (t,n)::decsList rest
-                | MulVarDec(typ, varList)::rest ->
-                    List.map (fun x -> (typ, x)) varList @ decsList rest
-                | _ -> failwith "Functions cant declare functions"
-
             let varDescs = decsList decs
             let (vEnv1, code1) = List.fold (fun (env,l) (t,n) -> let (a,b) = allocate LocVar (t, n) env
                                                                  (a,l@b)) (vEnv, []) varDescs
@@ -260,11 +253,6 @@ module CodeGenerationOpt =
                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
                     (vEnv2, fEnv2, code1 @ code2)
                 | FunDec(tyOpt, f, xs, body) ->
-                    let rec decsList decs = 
-                        match decs with
-                        | [] -> []
-                        | (VarDec(t,n))::rest -> (t,n)::decsList rest
-                        | _ -> failwith "Functions cant take functions as input"
                     let label =  newLabel()
                     let varDescs = decsList xs
                     let fEnv1 = Map.add f (label, tyOpt, varDescs) fEnv
