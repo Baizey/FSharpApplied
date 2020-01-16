@@ -179,20 +179,20 @@ module TypeCheck =
         match stm with
         | Return(_) -> true
         | Do(GC(b))
-        | Alt(GC(b)) -> tcReturnGC b
+        | Alt(GC(b)) -> tcHasReturnGC b
         | Block(_,stms) -> List.exists tcHasReturnStm stms
         | _ -> false
-    and tcReturnGC (l) =
+    and tcHasReturnGC (l) =
         match l with
         | [] -> false
-        | ((_,s)::rest) -> List.exists tcHasReturnStm s || tcReturnGC (rest)
+        | ((_,s)::rest) -> List.exists tcHasReturnStm s || tcHasReturnGC (rest)
     and tcReturnStmLast stm =
         match stm with
         | Return(_) -> ()
         | Do(GC(b))
         | Alt(GC(b)) -> List.iter (fun (e,s) -> tcReturnStmLast (List.last s)) b 
         | Block(_,stms) -> tcReturnStmLast (List.last stms)
-        | _ -> failwith "Possibly missing return statement in branch"
+        | _ -> failwith "Possibly missing return statement in branch or not placed as last statement"
     /// tcP prog checks the well-typeness of a program prog
     and tcP (P(decs, stms)) =
         let gtenv = tcGDecs Map.empty decs
