@@ -16,20 +16,17 @@ module TypeCheck =
         | B _ -> BTyp
         | Addr e -> PTyp (tcA gtenv ltenv e)
         | Access acc -> tcA gtenv ltenv acc
-
         | Apply(f, [ e ]) when List.exists (fun x -> x = f) [ "-"; "!" ] -> tcMonadic gtenv ltenv f e
-
         | Apply(f, [ e1; e2 ]) when List.exists (fun x -> x = f) [ "+"; "-"; "*"; "="; "&&"; "<"; "<>"; "<="; ">"; "||" ] ->
             tcDyadic gtenv ltenv f e1 e2
+        | Apply (f, l) -> failwith ("Language does not support " + f + " with " + (string (List.length l)) + " arguments")
         | Func(f, es) -> tcNaryFunction gtenv ltenv f es
-
-        | _ -> failwith "tcE: not supported yet"
 
     and tcMonadic (gtenv: Env) (ltenv: Env) (f: string) (e: Exp): Typ =
         match (f, tcExpr gtenv ltenv e) with
         | ("-", ITyp) -> ITyp
         | ("!", BTyp) -> BTyp
-        | _ -> failwith "illegal/illtyped monadic expression"
+        | _ -> failwith ("illegal/illtyped monadic expression" + f)
 
     and tcDyadic (gtenv: Env) (ltenv: Env) (f: string) (e1: Exp) (e2: Exp): Typ =
         match (f, tcExpr gtenv ltenv e1, tcExpr gtenv ltenv e2) with
@@ -50,7 +47,7 @@ module TypeCheck =
         let func = 
             match Map.tryFind f gtenv with
             | None -> match Map.tryFind f ltenv with
-                      | None -> failwith "Function does not exists"
+                      | None -> failwith ("Function " + f + "does not exists")
                       | Some(a) -> a
             | Some(a) -> a
 
@@ -70,7 +67,7 @@ module TypeCheck =
         let proc = 
             match Map.tryFind f gtenv with
             | None -> match Map.tryFind f ltenv with
-                      | None -> failwith "Procedure does not exists"
+                      | None -> failwith ("Procedure" + f + "does not exists")
                       | Some(a) -> a
             | Some(a) -> a
 
@@ -79,8 +76,6 @@ module TypeCheck =
             if tcNaryArgsChecker gtenv ltenv ts es then ()
             else failwith "procedure call types are mismatched"
         | _ -> failwith "Procedure either has return type, or structure is wrong"
-        
-        //failwith "type check: procedures not supported yet"
 
 
     /// tcA gtenv ltenv e gives the type for access acc on the basis of type environments gtenv and ltenv
@@ -125,6 +120,11 @@ module TypeCheck =
         | PrintLn e -> ignore (tcExpr gtenv ltenv e)
         | MulAss([], []) ->
             ()
+        | Ass(acc, e) ->
+            let a =  tcA gtenv ltenv acc
+            let b = tcExpr gtenv ltenv e
+            if tcEquality a b then ()
+            else failwith "illtyped assignment"
         | MulAss(_, []) ->
             failwith "illtyped multi assignment, missing right side expressions"
         | MulAss([], _) ->
@@ -132,17 +132,17 @@ module TypeCheck =
         | MulAss(acc::accs, e::es) ->
             if tcA gtenv ltenv acc = tcExpr gtenv ltenv e then tcStm gtenv ltenv (MulAss(accs, es))
             else failwith "illtyped multi assignment"
-        | Ass(acc, e) ->
-            let a =  tcA gtenv ltenv acc
-            let b = tcExpr gtenv ltenv e
-            if tcEquality a b then ()
-            else failwith "illtyped assignment"
         | Return(Some(a)) ->
-                        let t = tcExpr gtenv ltenv a
-                        let rt = Map.find "function" ltenv
-                        if t = rt then () else failwith "Return type wrong"
-        | Do(GC(l))
-        | Alt(GC(l)) -> match (List.forall (fun (e,_) -> (tcExpr gtenv ltenv e = BTyp)) l) with
+            let t = tcExpr gtenv ltenv a
+            let rt = Map.find "function" ltenv
+            if t = rt then () else failwith "Return type wrong"
+        | Return(None) -> 
+            let typ = Map.find "procedure" ltenv
+            match typ with
+            | FTyp(_,None) -> ()
+            | _ -> failwith "Return nothing only works for procedures"
+        | Alt(GC(l))
+        | Do(GC(l)) -> match (List.forall (fun (e,_) -> (tcExpr gtenv ltenv e = BTyp)) l) with
                                          | true -> List.iter (fun (_,stms) -> List.iter (tcStm gtenv ltenv) stms) l
                                          | false -> failwith "Guard is not of type boolean"
         | Block([], stms) -> List.iter (tcStm gtenv ltenv) stms
@@ -150,25 +150,24 @@ module TypeCheck =
                                let locEnv = Map.fold (fun acc str typ -> Map.add str typ acc) ltenv innerLtenv
                                List.iter (tcStm gtenv locEnv) stms
         | Call(f, es) -> tcNaryProcedure gtenv ltenv f es
-        | _ -> failwith "tcS: this statement is not supported yet"
 
     and tcGDec (gtenv: Env) (dec: Dec): Env =
         match dec with
-        | VarDec(typ, str) -> Map.add str typ gtenv
         | MulVarDec(typ, strList) ->
             List.fold (fun state str -> tcGDec state (VarDec(typ, str))) gtenv strList
+        | VarDec(typ, str) -> Map.add str typ gtenv
         | FunDec(topt, f, decs, stm) -> 
             match topt with
             | Some(rtyp) -> tcFDecs (decsNames decs) //Check all input arguements are unique
                             let ftyp = FTyp(decsTypes decs, Some(rtyp))
                             let ltenv = Map.add f ftyp (Map.add "function" rtyp (tcGDecs Map.empty decs))
                             if tcReturnStm stm then () else failwith "Function has no return statement"
+                            tcReturnStmLast stm
                             tcStm gtenv ltenv stm //Check stm is wellformed and return types correct.
                             Map.add f ftyp gtenv //Add function to enviroment
             | None -> tcFDecs (decsNames decs)
                       let ftyp = FTyp(decsTypes decs, None)
-                      let ltenv = Map.add f ftyp (tcGDecs Map.empty decs)
-                      if tcReturnStm stm then failwith "Procedure contains return statement" else ()
+                      let ltenv = Map.add f ftyp (Map.add "procedure" (FTyp([],None)) (tcGDecs Map.empty decs))
                       tcStm gtenv ltenv stm
                       Map.add f ftyp gtenv
     and tcGDecs (gtenv: Env) (decs: Dec list): Env =
@@ -192,7 +191,7 @@ module TypeCheck =
     and tcReturnStm (stm:Stm) =
         match stm with
         | Return(_) -> true
-        | Do(GC(b)) -> tcReturnGC b
+        | Do(GC(b))
         | Alt(GC(b)) -> tcReturnGC b
         | Block(_,stms) -> List.exists tcReturnStm stms
         | _ -> false
@@ -200,6 +199,13 @@ module TypeCheck =
         match l with
         | [] -> false
         | ((_,s)::rest) -> List.exists tcReturnStm s || tcReturnGC (rest)
+    and tcReturnStmLast stm =
+        match stm with
+        | Return(_) -> ()
+        | Do(GC(b))
+        | Alt(GC(b)) -> List.iter (fun (e,s) -> tcReturnStmLast (List.last s)) b 
+        | Block(_,stms) -> tcReturnStmLast (List.last stms)
+        | _ -> failwith "Possibly missing return statement in branch"
     /// tcP prog checks the well-typeness of a program prog
     and tcP (P(decs, stms)) =
         let gtenv = tcGDecs Map.empty decs

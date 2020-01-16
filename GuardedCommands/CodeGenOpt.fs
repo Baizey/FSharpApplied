@@ -159,6 +159,8 @@ module CodeGenerationOpt =
         | MulAss([],[]) -> k
         | MulAss(acc::accs, []) ->
             CompStm vEnv fEnv (MulAss(accs, [])) (CompAccess vEnv fEnv acc (SWAP :: STI :: addINCSP -1 k))
+        | MulAss(accs, e::es) ->
+                CompExpr vEnv fEnv e (CompStm vEnv fEnv (MulAss(accs, es)) k)
         | Ass(acc, e) -> CompAccess vEnv fEnv acc (CompExpr vEnv fEnv e (STI :: addINCSP -1 k))
 
         | Block([], stms) -> CompStms vEnv fEnv stms k
@@ -223,7 +225,7 @@ module CodeGenerationOpt =
             let (flabel,_,_) = Map.find f fEnv
             CompExprs vEnv fEnv es (makeCall (List.length es) flabel (addINCSP (-1) k))
 
-        | _ -> failwith "CS: this statement is not supported yet"
+        //| _ -> failwith "CS: this statement is not supported yet"
 
     and CompStms vEnv fEnv stms k =
         match stms with

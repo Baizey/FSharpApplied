@@ -91,7 +91,7 @@ module Driver =
     [<EntryPoint>]
     let main argv =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
-        let tree = parseFromFile "A0.gc"
+        let tree = parseFromFile "factCBV.gc"
         postScriptWrapperAst tree "test"
         let tcp = tcP tree
         let codeRaw = CP tree
@@ -104,6 +104,6 @@ module Driver =
         printf "[ "
         codeOpt |> Seq.iter (printf "%A, ")
         printfn "]"
-        let _ = goTraceOpt tree
+        //let _ = goTraceOpt tree
         goOpt tree
         0
