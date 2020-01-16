@@ -93,41 +93,63 @@ module CodeGenerationOpt =
     /// CA acc vEnv fEnv k gives the code for an access acc on the basis of a variable and a function environment and continuation k
     and CompAccess (varEnv: varEnv) (funEnv: funEnv) (access: Access) (k: instr list): instr list =
         match access with
-        | AVar x ->
-            match Map.find x (fst varEnv) with
+        | AVar x -> match Map.find x (fst varEnv) with
             | (GloVar addr, ATyp(_,None)) -> addCST addr (GETBP :: ADD :: k)
             | (GloVar addr, _) -> addCST addr k
             | (LocVar offset, _) -> GETBP :: (addCST offset (ADD :: k))
-        | AIndex(AIndex(a, b), e) ->
-            failwith "CompAccess: array of arrays not supported"
-        | AIndex(acc, e) ->
-            match acc with
-            | AVar x ->
-                // Todo: This can be made much prettier I think, only diff is [ADD] and [ADD; GETBP; ADD]
-                match Map.find x (fst varEnv) with
-                | (GloVar _, _) ->
-                    CompAccess varEnv funEnv acc (LDI :: (CompExpr varEnv funEnv e (ADD :: k)))
-                | (LocVar _, _) ->
-                    CompAccess varEnv funEnv acc (LDI :: (CompExpr varEnv funEnv e (ADD :: GETBP :: ADD :: k)))
-            | _ -> failwith "CA: this was supposed to be a variable name"
-        | ADeref e -> (CompExpr varEnv funEnv e k)
+        // TODO: optimize how we get environment in use?
+        | AIndex(acc, e) -> match isLocal acc varEnv with
+            | true -> CompAccess varEnv funEnv acc (LDI :: (CompExpr varEnv funEnv e (ADD :: GETBP :: ADD :: k)))
+            | false -> CompAccess varEnv funEnv acc (LDI :: (CompExpr varEnv funEnv e (ADD :: k)))
+        | ADeref e -> CompExpr varEnv funEnv e k
+    and isLocal (arr:Access) (varEnv:varEnv): bool =
+        match arr with
+        | AIndex(a, _) -> isLocal a varEnv
+        | AVar a -> match Map.find a (fst varEnv) with
+            | (GloVar _, _) -> false
+            | (LocVar _, _) -> true
+        | _ -> failwith "CA: this was supposed to be an array or variable name"
 
     (* Bind declared variable in env and generate code to allocate it: *)
     let rec allocate (kind: int -> Var) (typ, x) (varEnv: varEnv) =
         let (env, fdepth) = varEnv
         match typ with
         | ATyp(_, None) -> failwith "Array needs to be given a size"
-        | ATyp((ATyp (a, b)), Some size) ->
-            failwith "allocate: array of arrays not supported"
+        // TODO: optimize array allocation
+        | ATyp((ATyp (a, b)), Some size) -> 
+            // Gets the sizes specified [1][2][3] etc
+            let sizes = List.rev (deepArraySize (ATyp((ATyp (a, b)), Some size)))
+            // Generates the code which allocates the needed space and sets up inner pointers
+            let (code, depth) = allocateDeepArray fdepth sizes
+            // Stores the array in varEnv and updates fdepth size
+            let newEnv = (Map.add x (kind (depth), (ATyp((ATyp (a, b)), Some size))) env, depth + 1)
+            (newEnv, code @ [CSTI (depth - List.head sizes)])
         | ATyp(innerType, Some size) ->
             let newEnv = (Map.add x (kind (fdepth + size), (ATyp(innerType, Some size))) env, fdepth + size + 1)
-            let arrayRefCode = CompAccess newEnv Map.empty (AVar(x)) [ CSTI fdepth; STI; INCSP -1 ]
-            (newEnv, addINCSP (size + 1) arrayRefCode)
+            (newEnv, [INCSP size; CSTI fdepth])
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
             let code = [ INCSP 1 ]
             (newEnv, code)
-
+    and deepArraySize (typ:Typ) : int list =
+        match typ with
+        | ATyp(ATyp(a, b), Some size) -> size :: deepArraySize (ATyp(a, b))
+        | ATyp(_, Some size) -> [size]
+        | _ -> failwith "This isn't an array!"
+    and allocateDeepArray (depth:int) (sizes:int list) : instr list * int =
+        match sizes with
+        | [] -> failwith "deep array: Not supposed to happen"
+        // Bottom layer is a normal array
+        | [size] -> ([ INCSP size ], depth + size)
+        // All other layers has to point to their sub-arrays and have a normal p at the end
+        | size::s::sizes ->
+            let (deepArrayCode, depths, depth) = (List.fold (fun (code, depths, curr) _ ->
+                    let (tCode, depth) = allocateDeepArray curr (s::sizes)
+                    (code @ tCode, (depth - s) :: depths, depth))
+                    ([], [], depth)
+                    (List.init size (fun _ -> 0)))
+            let arrayCode = List.rev (List.map (fun item -> CSTI item) depths)
+            (deepArrayCode @ arrayCode, depth + size)
 
     /// CS s vEnv fEnv k gives the code for a statement s on the basis of a variable and a function environment and continuation k
     //let rec CompStm stm vEnv fEnv k =
@@ -191,7 +213,7 @@ module CodeGenerationOpt =
             let inVar = List.length list
             let localVars = Map.fold (fun acc _ (var, typ) -> 
                                 match (var, typ) with
-                                | (LocVar(_), ATyp(_, Some(i))) -> acc + i + 1
+                                | (LocVar(a), ATyp(b, Some(i))) when a >= inVar -> acc + 1 + calculateArraySize (List.rev (deepArraySize (ATyp(b, Some(i)))))
                                 | (LocVar(a), _) when a >= inVar -> acc + 1
                                 | _ -> acc
                             ) 0 (fst vEnv)
@@ -207,6 +229,10 @@ module CodeGenerationOpt =
         match stms with
         | [] -> k
         | stm :: stms' -> CompStm vEnv fEnv stm (CompStms  vEnv fEnv stms' k)
+    and calculateArraySize (sizes:int list) : int = match sizes with
+        | [x] -> x
+        | x::xs -> x + x * (calculateArraySize xs)
+        | _ -> failwith "This is not supposed to happen"
 
     (* ------------------------------------------------------------------- *)
 
