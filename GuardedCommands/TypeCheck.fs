@@ -56,7 +56,7 @@ module TypeCheck =
             | FTyp(ts, Some(t)) ->
                 if tcNaryArgsChecker gtenv ltenv ts es then t
                 else failwith "function call types are mismatched"
-            | _ -> failwith "Function either has no return type, or structure is wrong"
+            | _ -> failwith ("Function " + f + " either has no return type, or structure is wrong")
 
     and tcEquality (typ1: Typ) (typ2: Typ): bool = 
         match (typ1, typ2) with
@@ -76,7 +76,7 @@ module TypeCheck =
         | FTyp(ts, None) -> 
             if tcNaryArgsChecker gtenv ltenv ts es then ()
             else failwith "procedure call types are mismatched"
-        | _ -> failwith "Procedure either has return type, or structure is wrong"
+        | _ -> failwith ("Procedure " + f +  " either has return type, or structure is wrong")
 
 
     /// tcA gtenv ltenv e gives the type for access acc on the basis of type environments gtenv and ltenv

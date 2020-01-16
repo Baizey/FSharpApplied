@@ -1,0 +1,16 @@
+begin
+x : int,
+  function f(a:int, b:int):int = {
+    do a < b -> return b
+     | b <= a -> return a
+    od;
+  },
+procedure p(z:int) = {
+    if z = 1 -> print z; return 
+     | z = 2 -> print z; return 
+    fi;
+    print 2;
+  };
+ x := f(1,2);
+ p(x);
+end

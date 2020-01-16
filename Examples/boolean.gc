@@ -1,0 +1,30 @@
+begin
+  x : int,
+  y : int;
+  x := 1;
+  y := 2;
+  if  x = 2 -> print -1
+   |  x = 1 -> print x
+  fi;
+  if  !x = 1 -> print -1
+   |  !x = 0 -> print x
+  fi;
+  if  x = 1 && y = 1 -> print -1
+   |  x = 1 && y = 2 -> print x
+  fi;
+  if  y < x -> print -1
+   |  x < y -> print x
+  fi;
+  if  x <> 1 -> print -1
+   |  x <> y -> print x
+  fi;
+  if  y <= x -> print -1
+   |  x <= y -> print x
+  fi;
+  if  x > y -> print -1
+   |  y > x -> print x
+  fi;
+  if  x = 0 || y = 1 -> print x-1
+   |  x = 0 || x = 1 -> print x
+  fi
+end
