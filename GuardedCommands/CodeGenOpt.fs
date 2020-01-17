@@ -110,33 +110,30 @@ module CodeGenerationOpt =
             | (GloVar _, _) -> false
             | (LocVar _, _) -> true
         | _ -> failwith "CA: this was supposed to be an array or variable name"
-
-    (* Bind declared variable in env and generate code to allocate it: *)
-    let rec allocate (kind: int -> Var) (typ, x) (varEnv: varEnv) =
+        
+    let rec allocate (kind: int -> Var) (typ, x) (varEnv: varEnv) (code:instr list) : varEnv * instr list =
         let (env, fdepth) = varEnv
         match typ with
         | ATyp(_, None) -> failwith "Array needs to be given a size"
-        // TODO: optimize array allocation
-        | ATyp((ATyp (a, b)), Some size) -> 
-            // Gets the sizes specified [1][2][3] etc
-            let sizes = List.rev (deepArraySize (ATyp((ATyp (a, b)), Some size)))
-            // Generates the code which allocates the needed space and sets up inner pointers
-            let (code, depth) = allocateDeepArray fdepth sizes
-            // Stores the array in varEnv and updates fdepth size
-            let newEnv = (Map.add x (kind (depth), (ATyp((ATyp (a, b)), Some size))) env, depth + 1)
-            (newEnv, code @ [CSTI (depth - List.head sizes)])
         | ATyp(innerType, Some size) ->
-            let newEnv = (Map.add x (kind (fdepth + size), (ATyp(innerType, Some size))) env, fdepth + size + 1)
-            (newEnv, [INCSP size; CSTI fdepth])
+            let sizes = List.rev (arraySizes (ATyp(innerType, Some size)))
+            let totalAllocation = arrayAllocationSize sizes
+            let codeWithArrayPointer = addCST (fdepth + totalAllocation - List.head sizes) code
+            let finishedCode = addCode (List.rev (fst (allocateDeepArray fdepth sizes))) codeWithArrayPointer
+            let newEnv = (Map.add x (kind (fdepth + totalAllocation), (ATyp(innerType, Some size))) env, fdepth + totalAllocation + 1)
+            (newEnv, finishedCode)
         | _ ->
             let newEnv = (Map.add x (kind fdepth, typ) env, fdepth + 1)
-            let code = [ INCSP 1 ]
-            (newEnv, code)
-    and deepArraySize (typ:Typ) : int list =
+            (newEnv, addINCSP 1 code)
+    and arraySizes (typ:Typ) : int list =
         match typ with
-        | ATyp(ATyp(a, b), Some size) -> size :: deepArraySize (ATyp(a, b))
+        | ATyp(ATyp(a, b), Some size) -> size :: arraySizes (ATyp(a, b))
         | ATyp(_, Some size) -> [size]
         | _ -> failwith "This isn't an array!"
+    and arrayAllocationSize (sizes:int list) : int = match sizes with
+        | [x] -> x
+        | x::xs -> x + x * (arrayAllocationSize xs)
+        | _ -> failwith "This is not supposed to happen"
     and allocateDeepArray (depth:int) (sizes:int list) : instr list * int =
         match sizes with
         | [] -> failwith "deep array: Not supposed to happen"
@@ -151,6 +148,15 @@ module CodeGenerationOpt =
                     (List.init size (fun _ -> 0)))
             let arrayCode = List.rev (List.map (fun item -> CSTI item) depths)
             (deepArrayCode @ arrayCode, depth + size)
+    and addCode (newCode: instr list) (oldCode: instr list): instr list = match newCode with
+    | [] -> oldCode
+    | x::xs ->
+        match x with
+        | CSTI k -> addCode xs (addCST k oldCode)
+        | INCSP k -> addCode xs (addINCSP k oldCode)
+        | _ -> failwith "This is not handled yet"
+            
+   
 
     /// CS s vEnv fEnv k gives the code for a statement s on the basis of a variable and a function environment and continuation k
     //let rec CompStm stm vEnv fEnv k =
@@ -167,7 +173,7 @@ module CodeGenerationOpt =
         | Block([], stms) -> CompStms vEnv fEnv stms k
         | Block(decs, stms) -> 
             let varDescs = decsList decs
-            let (vEnv1, code1) = List.fold (fun (env,l) (t,n) -> let (a,b) = allocate LocVar (t, n) env
+            let (vEnv1, code1) = List.fold (fun (env,l) (t,n) -> let (a,b) = allocate LocVar (t, n) env k
                                                                  (a,l@b)) (vEnv, []) varDescs
 
             // Todo: See if we can't get rid of this @
@@ -208,7 +214,7 @@ module CodeGenerationOpt =
             let inVar = List.length list
             let localVars = Map.fold (fun acc _ (var, typ) -> 
                                 match (var, typ) with
-                                | (LocVar(a), ATyp(b, Some(i))) when a >= inVar -> acc + 1 + calculateArraySize (List.rev (deepArraySize (ATyp(b, Some(i)))))
+                                | (LocVar(a), ATyp(b, Some(i))) when a >= inVar -> acc + 1 + arrayAllocationSize (List.rev (arraySizes (ATyp(b, Some(i)))))
                                 | (LocVar(a), _) when a >= inVar -> acc + 1
                                 | _ -> acc
                             ) 0 (fst vEnv)
@@ -225,10 +231,6 @@ module CodeGenerationOpt =
         match stms with
         | [] -> k
         | stm :: stms' -> CompStm vEnv fEnv stm (CompStms  vEnv fEnv stms' k)
-    and calculateArraySize (sizes:int list) : int = match sizes with
-        | [x] -> x
-        | x::xs -> x + x * (calculateArraySize xs)
-        | _ -> failwith "This is not supposed to happen"
 
     (* ------------------------------------------------------------------- *)
 
@@ -248,7 +250,8 @@ module CodeGenerationOpt =
                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
                     (vEnv2, fEnv2, code1 @ code2)
                 | VarDec(typ, var) ->
-                    let (vEnv1, code1) = allocate GloVar (typ, var) vEnv
+                    // TODO: dont @ code, give it instead of [] to optimize
+                    let (vEnv1, code1) = allocate GloVar (typ, var) vEnv []
                     let (vEnv2, fEnv2, code2) = addv decr vEnv1 fEnv
                     (vEnv2, fEnv2, code1 @ code2)
                 | FunDec(tyOpt, f, xs, body) ->
