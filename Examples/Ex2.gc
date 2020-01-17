@@ -1,10 +1,7 @@
 ﻿begin
-    res : int,
-    x: int,
-    procedure y() = { 
-        res := 4;
-        x:= res * 2;
-        print -res + x 
-    };
-    y();
+  res : int,
+  x: int;
+  { res := 4;
+    x:= res * 2;
+    print -res + x }
 end

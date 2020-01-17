@@ -1,19 +1,11 @@
 ﻿begin
-    x: int,
-    procedure z(x : int, y : int) = {
-        z : int;	
-        z := x+y;
-        print z
-    },
-    procedure f(x : int) = {
-        y : int;
-        y := 2;
-        z(x, y);
-    },
-    procedure g() = { 
-        x : int;
-        x := 1;
-        f(x);
-    };
+  x: int,
+  procedure g() =
+  { x:= 1;
+    { y : int;
+      y:= 2;
+	 {z : int;	
+	  z:= x+y;
+	  print z}}};
   g()
 end
