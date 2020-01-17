@@ -1,24 +1,20 @@
 ﻿begin
+    i, n: int,
     procedure fac(n: int, res: ^int) = { 
+        tmp: int;
         if 
             n=0 -> res^ := 1
-            | true -> { 
-                tmp: int;
+            | true -> 
                 fac(n-1, &tmp);
                 res^ := tmp * n
-            } 
+            
         fi
     };
-    {
-        i : int;
-        i := 0;
-        do  
-            i < 5 -> {
-                n: int;
-                fac(i, &n);
-                print n;
-                i := i + 1
-            } 
-        od 
-    }
+    i := 0;
+    do  
+        i < 5 -> 
+            fac(i, &n);
+            print n;
+            i := i + 1
+    od
 end
