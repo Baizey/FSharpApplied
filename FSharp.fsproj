@@ -59,6 +59,7 @@
       <None Include="Examples\boolean.gc" />
       <None Include="Examples\mulDec.gc" />
       <None Include="Examples\return.gc" />
+      <None Include="Examples\12queens.gc" />
       <Compile Include="AndrewKennedyTranslation.fs" />
       <Compile Include="ASTUtil.fs" />
       <Compile Include="PostScript.fs" />

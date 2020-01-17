@@ -84,15 +84,6 @@ module CodeGenerationOptFuncs =
 
      (* End code directly copied from Peter Sestoft *)
 
-    
-
-     let rec FixZeroAddition C =
-         match C with
-         | [] -> []
-         | CSTI 0 :: CSTI n :: ADD :: rest -> FixZeroAddition (CSTI n::rest)
-         | CSTI 0 :: GETBP :: ADD :: rest -> FixZeroAddition (GETBP::rest)
-         | a::rest -> a::FixZeroAddition rest
-
      let rec FixLabels (C:instr list) (lm : Map<label,label>) =
          match C with
          | [] -> ([],lm)
@@ -105,17 +96,20 @@ module CodeGenerationOptFuncs =
          | a::rest -> let K,M = FixLabels rest lm 
                       (a::K,M)
 
-     let rec FixJumps C lm =
+     let rec FixJumpsAndZeroAddition C lm =
          match C with
          | [] -> []
-         | GOTO l :: rest when Map.containsKey l lm -> FixJumps (GOTO (Map.find l lm)::rest) lm
-         | IFZERO l :: rest when Map.containsKey l lm -> FixJumps (IFZERO (Map.find l lm)::rest) lm
-         | IFNZRO l :: rest when Map.containsKey l lm -> FixJumps (IFNZRO (Map.find l lm)::rest) lm
-         | CALL (n,l) ::rest when Map.containsKey l lm -> FixJumps (CALL (n,(Map.find l lm))::rest) lm
-         | a::rest -> a::FixJumps rest lm
+         | INCSP m :: INCSP n :: rest -> FixJumpsAndZeroAddition (INCSP (m+n)::rest) lm
+         | CSTI 0 :: CSTI n :: ADD :: rest -> FixJumpsAndZeroAddition (CSTI n::rest) lm
+         | CSTI 0 :: GETBP :: ADD :: rest -> FixJumpsAndZeroAddition (GETBP::rest) lm
+         | GOTO l :: rest when Map.containsKey l lm -> FixJumpsAndZeroAddition (GOTO (Map.find l lm)::rest) lm
+         | IFZERO l :: rest when Map.containsKey l lm -> FixJumpsAndZeroAddition (IFZERO (Map.find l lm)::rest) lm
+         | IFNZRO l :: rest when Map.containsKey l lm -> FixJumpsAndZeroAddition (IFNZRO (Map.find l lm)::rest) lm
+         | CALL (n,l) ::rest when Map.containsKey l lm -> FixJumpsAndZeroAddition (CALL (n,(Map.find l lm))::rest) lm
+         | a::rest -> a::FixJumpsAndZeroAddition rest lm
 
      let SecondPassOpt C = 
-         let K,M = FixLabels (FixZeroAddition C) Map.empty 
-         FixJumps K M
+         let K,M = FixLabels C Map.empty 
+         FixJumpsAndZeroAddition K M
 
      

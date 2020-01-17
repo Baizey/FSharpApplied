@@ -92,7 +92,7 @@ module Driver =
     let main argv =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
 
-        let tree = parseFromFile "Return.gc"
+        let tree = parseFromFile "12queens.gc"
         postScriptWrapperAst tree "test"
         let tcp = tcP tree
         let codeRaw = CP tree
@@ -105,12 +105,14 @@ module Driver =
         printf "[ "
         codeOpt |> Seq.iter (printf "%A, ")
         printfn "]"
+        printfn "Non-optimized size of instruction list : %A" (string (List.length codeRaw))
+        printfn "Optimized size of instruction list : %A" (string (List.length codeOpt))
         //let _ = goTraceOpt tree
 
-        //goOpt tree
+        go tree
 
         // Test all files
         // Replace go with goOpt for optimized code
-        execTest go
+        //execTest go
 
         0
