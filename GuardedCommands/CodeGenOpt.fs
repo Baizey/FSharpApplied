@@ -60,7 +60,7 @@ module CodeGenerationOpt =
             match k with 
             | IFNZRO lab :: _ -> CompExpr vEnv fEnv b1 (IFNZRO lab :: CompExpr vEnv fEnv b2 k)
             | IFZERO labthen :: k1 ->
-                let (labelse, k2) = addLabel (addCST 1 k1)
+                let (labelse, k2) = addLabel k1
                 CompExpr vEnv fEnv b1 (IFNZRO labelse :: CompExpr vEnv fEnv b2 (IFZERO labthen :: k2))
             | _ ->
                 let (jumpend, k1) = makeJump k
@@ -206,7 +206,7 @@ module CodeGenerationOpt =
                     let k3 = CompStms vEnv fEnv stms k2
                     let k4 = CompExpr vEnv fEnv expr (IFZERO lstlabel :: k3)
                     addLabel k4
-            
+
             Label startlabel :: snd (command l k)
 
         | Return(rt) -> 
