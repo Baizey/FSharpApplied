@@ -86,24 +86,23 @@ module CodeGenerationOptFuncs =
 
     
 
-     let rec CombineINCST C =
+     let rec FixZeroAddition C =
          match C with
          | [] -> []
-         | INCSP n :: INCSP m :: rest -> CombineINCST (INCSP (m+n)::rest)
-         | CSTI 0 :: CSTI n :: ADD :: rest -> CombineINCST (CSTI n::rest)
-         | CSTI 0 :: GETBP :: ADD :: rest -> CombineINCST (GETBP::rest)
-         | a::rest -> a::CombineINCST rest
+         | CSTI 0 :: CSTI n :: ADD :: rest -> FixZeroAddition (CSTI n::rest)
+         | CSTI 0 :: GETBP :: ADD :: rest -> FixZeroAddition (GETBP::rest)
+         | a::rest -> a::FixZeroAddition rest
 
-     let rec CombineLabels (C:instr list) (lm : Map<label,label>) =
+     let rec FixLabels (C:instr list) (lm : Map<label,label>) =
          match C with
          | [] -> ([],lm)
-         | Label l1 :: rest when Map.containsKey l1 lm -> CombineLabels (Label (Map.find l1 lm) :: rest) lm
+         | Label l1 :: rest when Map.containsKey l1 lm -> FixLabels (Label (Map.find l1 lm) :: rest) lm
                                                           
-         | Label l1 :: Label l2 :: rest -> let K,M = CombineLabels (Label l2 :: rest) (Map.add l1 l2 lm) 
+         | Label l1 :: Label l2 :: rest -> let K,M = FixLabels (Label l2 :: rest) (Map.add l1 l2 lm) 
                                            (K, Map.add l1 l2 M)
-         | Label l1 :: GOTO l2 ::rest -> let K,M = CombineLabels rest (Map.add l1 l2 lm) 
+         | Label l1 :: GOTO l2 ::rest -> let K,M = FixLabels rest (Map.add l1 l2 lm) 
                                          (K, Map.add l1 l2 M)
-         | a::rest -> let K,M = CombineLabels rest lm 
+         | a::rest -> let K,M = FixLabels rest lm 
                       (a::K,M)
 
      let rec FixJumps C lm =
@@ -116,7 +115,7 @@ module CodeGenerationOptFuncs =
          | a::rest -> a::FixJumps rest lm
 
      let SecondPassOpt C = 
-         let K,M = CombineLabels (CombineINCST C) Map.empty 
+         let K,M = FixLabels (FixZeroAddition C) Map.empty 
          FixJumps K M
 
      

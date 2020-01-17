@@ -92,7 +92,7 @@ module Driver =
     let main argv =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
 
-        let tree = parseFromFile "QuickSortV2.gc"
+        let tree = parseFromFile "Return.gc"
         postScriptWrapperAst tree "test"
         let tcp = tcP tree
         let codeRaw = CP tree
@@ -111,6 +111,6 @@ module Driver =
 
         // Test all files
         // Replace go with goOpt for optimized code
-        execTest go 
+        execTest go
 
         0
