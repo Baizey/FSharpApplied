@@ -243,7 +243,7 @@ module CodeGeneration =
             let inVar = List.length list
             let localVars = Map.fold (fun acc _ (var, typ) -> 
                                 match (var, typ) with
-                                | (LocVar(_), ATyp(b, Some(i))) -> acc + arrayAllocationSize (List.rev (deepArraySize (ATyp(b, Some(i)))))
+                                | (LocVar(_), ATyp(b, Some(i))) -> acc + 1 + arrayAllocationSize (List.rev (deepArraySize (ATyp(b, Some(i)))))
                                 | (LocVar(a), _) when a >= inVar -> acc + 1
                                 | _ -> acc
                             ) 0 (fst varEnv)
