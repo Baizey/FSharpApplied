@@ -243,7 +243,7 @@ module CodeGeneration =
             let inVar = List.length list
             let localVars = Map.fold (fun acc _ (var, typ) -> 
                                 match (var, typ) with
-                                | (LocVar(_), ATyp(b, Some(i))) -> acc + calculateArraySize (List.rev (deepArraySize (ATyp(b, Some(i)))))
+                                | (LocVar(_), ATyp(b, Some(i))) -> acc + arrayAllocationSize (List.rev (deepArraySize (ATyp(b, Some(i)))))
                                 | (LocVar(a), _) when a >= inVar -> acc + 1
                                 | _ -> acc
                             ) 0 (fst varEnv)
@@ -256,11 +256,10 @@ module CodeGeneration =
             [CALL (List.length es, flabel); INCSP -1]
 
     and CompStms (vEnv: varEnv) (fEnv: funEnv) stms = List.collect (CompStm vEnv fEnv) stms
-    and calculateArraySize (sizes:int list) : int =
-        match sizes with
-        | [i] -> i + 1
-        | i::xs -> (i + 1) + i * (calculateArraySize xs)
-        | _ -> failwith "This is not supposed to happen"
+    and arrayAllocationSize (sizes:int list) : int = match sizes with
+        | [x] -> x
+        | x::xs -> x + x * (arrayAllocationSize xs)
+        | _ -> failwith "Not supposed to happen"
         
 
     (* ------------------------------------------------------------------- *)
