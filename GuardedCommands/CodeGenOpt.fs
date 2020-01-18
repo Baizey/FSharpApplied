@@ -289,6 +289,7 @@ module CodeGenerationOpt =
 
     let CP(P(decs, stms)) =
         let _ = resetLabels()
-        let ((gvM, _) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
+        
+        let ((gvM, _) as gvEnv, fEnv, initCode) = makeGlobalEnvs (decs @ [FunDec(None, "Main", [], Block([], stms))])
         //(initCode @ CompStms gvEnv fEnv stms [ STOP ])
-        SecondPassOpt (initCode @ CompStms gvEnv fEnv stms [ STOP ])
+        SecondPassOpt (initCode @ CompStms gvEnv fEnv [Call("Main", [])] [ STOP ])

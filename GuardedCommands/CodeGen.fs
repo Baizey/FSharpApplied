@@ -313,7 +313,7 @@ module CodeGeneration =
     /// CP prog gives the code for a program prog
     let CP(P(decs, stms)) =
         let _ = resetLabels()
-        let ((gvM, _) as gvEnv, fEnv, initCode) = makeGlobalEnvs decs
-        let tmp = initCode @ CompStms gvEnv fEnv stms @ [ STOP ]
+        let ((gvM, _) as gvEnv, fEnv, initCode) = makeGlobalEnvs (decs @ [FunDec(None, "Main", [], Block([], stms))] )
+        let tmp = initCode @ CompStms gvEnv fEnv [Call("Main", [])] @ [ STOP ]
         tmp
         
