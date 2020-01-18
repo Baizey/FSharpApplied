@@ -176,9 +176,15 @@ module CodeGenerationOpt =
             let (vEnv1, code1) = List.fold (fun (currEnv, currCode) (typ, name) -> allocate LocVar (typ, name) currEnv currCode)
                                                                   (vEnv, [])
                                                                   varDescs
-
+                                                                  
+            let allocationSize = List.fold
+                                    (fun acc var -> match var with
+                                     | VarDec(ATyp(a, Some size), _) -> acc + 1 + arrayAllocationSize (List.rev (arraySizes (ATyp(a, Some(size)))))
+                                     | _ -> acc + 1)
+                                    0
+                                    decs
             // Todo: See if we can't get rid of this @
-            code1 @ CompStms vEnv1 fEnv stms (INCSP (-1*List.length decs) :: k)
+            code1 @ CompStms vEnv1 fEnv stms (INCSP -allocationSize :: k)
         
             //failwith "CompStm: blocks with definitions not made yet"
         | Alt(GC(l)) -> 

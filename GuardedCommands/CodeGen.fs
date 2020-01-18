@@ -234,8 +234,13 @@ module CodeGeneration =
                                                                                      (a,l@b)) (varEnv,[]) varDescs
                                 // <sl>
                                 let code2 = CompStms vEnv1 funEnv stms
+                                
+                                let size = List.fold (fun acc var -> match var with
+                                    | VarDec(ATyp(a, Some size), _) -> acc + 1 + arrayAllocationSize (List.rev (deepArraySize (ATyp(a, Some(size)))))
+                                    | _ -> acc + 1) 0 decs
+                                
                                 // INCSP -lng
-                                code1 @ code2 @ [INCSP (-1*List.length decs)]
+                                code1 @ code2 @ [INCSP -size]
 
         // Function return
         | Return(t) -> 
