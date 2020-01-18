@@ -173,8 +173,9 @@ module CodeGenerationOpt =
         | Block([], stms) -> CompStms vEnv fEnv stms k
         | Block(decs, stms) -> 
             let varDescs = decsList decs
-            let (vEnv1, code1) = List.fold (fun (env,l) (t,n) -> let (a,b) = allocate LocVar (t, n) env k
-                                                                 (a,l@b)) (vEnv, []) varDescs
+            let (vEnv1, code1) = List.fold (fun (currEnv, currCode) (typ, name) -> allocate LocVar (typ, name) currEnv currCode)
+                                                                  (vEnv, [])
+                                                                  varDescs
 
             // Todo: See if we can't get rid of this @
             code1 @ CompStms vEnv1 fEnv stms (INCSP (-1*List.length decs) :: k)
