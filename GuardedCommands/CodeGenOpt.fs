@@ -190,31 +190,11 @@ module CodeGenerationOpt =
         | Alt(GC(l)) -> 
             let (endlabel, k1) = addLabel k
             let k1 = STOP :: k1
-            let rec command ((lst): (Exp * Stm list) list) (k: instr list): (label * instr list) =
-                match lst with
-                | [] -> addLabel k
-                | (expr, stms) :: t ->
-                    let (lstlabel, k1) = command t k
-                    let k2 = addGOTO endlabel k1
-                    let k3 = CompStms vEnv fEnv stms k2
-                    let k4 = CompExpr vEnv fEnv expr (IFZERO lstlabel :: k3)
-                    addLabel k4
-
-            snd (command l k1)
+            snd (GuardedCommandBlock l endlabel vEnv fEnv k1)
 
         | Do(GC(l)) ->
             let startlabel = newLabel()
-            let rec command ((lst): (Exp * Stm list) list) (k: instr list): (label * instr list) =
-                match lst with
-                | [] -> addLabel k
-                | (expr, stms) :: t -> 
-                    let (lstlabel, k1) = command t k
-                    let k2 = addGOTO startlabel k1
-                    let k3 = CompStms vEnv fEnv stms k2
-                    let k4 = CompExpr vEnv fEnv expr (IFZERO lstlabel :: k3)
-                    addLabel k4
-
-            Label startlabel :: snd (command l k)
+            Label startlabel :: snd (GuardedCommandBlock l startlabel vEnv fEnv k)
 
         | Return(rt) -> 
             let (_, _, list) = fEnv.Item TMP_FUNCTION_STR
@@ -233,6 +213,15 @@ module CodeGenerationOpt =
             let (flabel,_,_) = Map.find f fEnv
             CompExprs vEnv fEnv es (makeCall (List.length es) flabel (addINCSP (-1) k))
 
+    and GuardedCommandBlock ((lst): (Exp * Stm list) list) (lab: label) (vEnv: varEnv) (fEnv: funEnv) (k: instr list): (label * instr list) =
+        match lst with
+        | [] -> addLabel k
+        | (expr, stms) :: t -> 
+            let (lstlabel, k) = GuardedCommandBlock t lab vEnv fEnv k
+            let k = addGOTO lab k
+            let k = CompStms vEnv fEnv stms k
+            let k = CompExpr vEnv fEnv expr (IFZERO lstlabel :: k)
+            addLabel k
 
     and CompStms vEnv fEnv stms k =
         match stms with
