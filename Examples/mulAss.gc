@@ -1,0 +1,10 @@
+﻿begin
+    a, b : int;
+    a := 88;
+    b := 99;
+    print a;
+    print b;
+    a, b := b, a;
+    print a;
+    print b;
+end
