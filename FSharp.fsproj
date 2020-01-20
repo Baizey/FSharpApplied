@@ -9,11 +9,6 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <NoWarn>0058;</NoWarn>
     </PropertyGroup>
-
-
-    <ItemGroup>
-      <None Remove="Examples\QuickSortV1.gc" />
-    </ItemGroup>
     <ItemGroup>
       <Reference Include="Machine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>GuardedCommands\MachineDll\Machine.dll</HintPath>
@@ -25,15 +20,21 @@
 
 
     <ItemGroup>
-      <None Include="Examples\Op1.gc" />
-      <None Include="Examples\SwapSimple.gc" />
-      <None Include="Examples\MulVarDec01.gc" />
-      <Content Include="Examples\A0_0.gc" />
+      <Compile Include="AndrewKennedyTranslation.fs" />
+      <Compile Include="ASTUtil.fs" />
+      <Compile Include="PostScript.fs" />
+      <Compile Include="TreeGenerator.fs" />
+      <Compile Include="Driver.fs" />
+      <None Include="Examples\12queens.gc" />
       <None Include="Examples\A0.gc" />
+      <None Include="Examples\A0_0.gc" />
+      <None Include="Examples\A0_1.gc" />
       <None Include="Examples\A1.gc" />
       <None Include="Examples\A2.gc" />
       <None Include="Examples\A3.gc" />
       <None Include="Examples\A4.gc" />
+      <None Include="Examples\AndOr.gc" />
+      <None Include="Examples\boolean.gc" />
       <None Include="Examples\Ex0.gc" />
       <None Include="Examples\Ex1.gc" />
       <None Include="Examples\Ex2.gc" />
@@ -47,25 +48,22 @@
       <None Include="Examples\factCBV.gc" />
       <None Include="Examples\factImpPTyp.gc" />
       <None Include="Examples\factRec.gc" />
+      <None Include="Examples\mul.gc" />
+      <None Include="Examples\mulAss.gc" />
+      <None Include="Examples\mulDec.gc" />
+      <None Include="Examples\MulVarDec01.gc" />
+      <None Include="Examples\Op1.gc" />
       <None Include="Examples\par1.gc" />
       <None Include="Examples\par2.gc" />
       <None Include="Examples\partition.gc" />
+      <None Include="Examples\pointer.gc" />
+      <None Include="Examples\QuickSortV1.gc" />
       <None Include="Examples\QuickSortV2.gc" />
+      <None Include="Examples\return.gc" />
+      <None Include="Examples\simpleSwap.gc" />
       <None Include="Examples\Skip.gc" />
       <None Include="Examples\Swap.gc" />
-      <Content Include="Examples\mul.gc" />
-      <Content Include="Examples\A0_1.gc" />
-      <Content Include="Examples\pointer.gc" />
-      <Content Include="Examples\simpleSwap.gc" />
-      <None Include="Examples\boolean.gc" />
-      <None Include="Examples\mulDec.gc" />
-      <None Include="Examples\return.gc" />
-      <None Include="Examples\12queens.gc" />
-      <Compile Include="AndrewKennedyTranslation.fs" />
-      <Compile Include="ASTUtil.fs" />
-      <Compile Include="PostScript.fs" />
-      <Compile Include="TreeGenerator.fs" />
-      <Compile Include="Driver.fs" />
+      <None Include="Examples\SwapSimple.gc" />
       <ProjectReference Include="GuardedCommands\GuardedCommands.fsproj" />
     </ItemGroup>
 </Project>
