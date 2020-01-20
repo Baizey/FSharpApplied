@@ -1,0 +1,5 @@
+begin
+    if false && true || true -> print 1
+     | true -> print -1
+    fi
+end
