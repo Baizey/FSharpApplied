@@ -25,6 +25,7 @@
 
 
     <ItemGroup>
+      <None Include="Examples\Op1.gc" />
       <None Include="Examples\SwapSimple.gc" />
       <None Include="Examples\MulVarDec01.gc" />
       <Content Include="Examples\A0_0.gc" />
