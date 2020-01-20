@@ -61,6 +61,7 @@
       <None Include="Examples\return.gc" />
       <None Include="Examples\12queens.gc" />
       <Content Include="Examples\mulAss.gc" />
+      <None Include="Examples\AndOr.gc" />
       <Compile Include="AndrewKennedyTranslation.fs" />
       <Compile Include="ASTUtil.fs" />
       <Compile Include="PostScript.fs" />
