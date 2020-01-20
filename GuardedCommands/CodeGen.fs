@@ -66,17 +66,19 @@ module CodeGeneration =
                                                                                           Label labend ]
 
 
-        | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "="; "-"; "<"; "<>"; ">" ; "<="] ->
+        | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "/"; "="; "-"; "<"; "<>"; ">" ; "<="; "%"] ->
             let ins =
                 match o with
                 | "+" -> [ ADD ]
                 | "*" -> [ MUL ]
+                | "/" -> [ DIV ]
                 | "=" -> [ EQ ]
                 | "-" -> [ SUB ]
                 | "<" -> [ LT ]
                 | "<>" -> [ EQ ; NOT ]
                 | ">" -> [ SWAP ; LT ]
                 | "<=" -> [SWAP ; LT ; NOT]
+                | "%" -> [ MOD ]
                 | _ -> failwith "CE: this case is not possible"
             CompExpr varEnv funEnv e1 @ CompExpr varEnv funEnv e2 @ ins
         | Func(f,es) -> let (flabel,_,_) = Map.find f funEnv

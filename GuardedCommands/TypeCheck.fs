@@ -20,7 +20,7 @@ module TypeCheck =
         | Addr e -> PTyp (tcA gtenv ltenv e)
         | Access acc -> tcA gtenv ltenv acc
         | Apply(f, [ e ]) when List.exists (fun x -> x = f) [ "-"; "!" ] -> tcMonadic gtenv ltenv f e
-        | Apply(f, [ e1; e2 ]) when List.exists (fun x -> x = f) [ "+"; "-"; "*"; "="; "&&"; "<"; "<>"; "<="; ">"; "||" ] ->
+        | Apply(f, [ e1; e2 ]) when List.exists (fun x -> x = f) [ "+"; "-"; "*"; "/"; "="; "&&"; "<"; "<>"; "<="; ">"; "||"; "%" ] ->
             tcDyadic gtenv ltenv f e1 e2
         | Apply (f, l) -> failwith ("Language does not support " + f + " with " + (string (List.length l)) + " arguments")
         | Func(f, es) -> tcNaryFunction gtenv ltenv f es
@@ -33,7 +33,7 @@ module TypeCheck =
 
     and tcDyadic (gtenv: Env) (ltenv: Env) (f: string) (e1: Exp) (e2: Exp): Typ =
         match (f, tcExpr gtenv ltenv e1, tcExpr gtenv ltenv e2) with
-        | (o, ITyp, ITyp) when List.exists (fun x -> x = o) [ "+"; "*"; "-" ] -> ITyp
+        | (o, ITyp, ITyp) when List.exists (fun x -> x = o) [ "+"; "*"; "-"; "/"; "%" ] -> ITyp
         | (o, ITyp, ITyp) when List.exists (fun x -> x = o) [ "="; "<" ; "<>" ; "<=" ; ">"] -> BTyp
         | (o, BTyp, BTyp) when List.exists (fun x -> x = o) [ "&&"; "="; "<>"; "||" ] -> BTyp
         | _ -> failwith ("illegal/illtyped dyadic expression: " + f)

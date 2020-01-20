@@ -50,7 +50,7 @@ rule tokenize =
   | "]"         { RSP }
   | "{"         { LCP }
   | "}"         { RCP }
-  | ","         { COMMA }         
+  | ","         { COMMA }
   | ";"         { SEMI  }
   | ":"         { COLON }
   | "|"         { BAR }
@@ -66,7 +66,9 @@ rule tokenize =
   | "*"         { TIMES }
   | "-"         { MINUS }
   | "="         { EQ }
-  | "+"         { PLUS }   
+  | "+"         { PLUS }
+  | "%"         { MOD }
+  | "/"         { DIV }
   | identifier  { keyword(LexBuffer<_>.LexemeString lexbuf) }
   | eof         { EOF }
 

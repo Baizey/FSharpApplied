@@ -92,7 +92,7 @@ module Driver =
     let main argv =
         System.IO.Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
 
-        let tree = parseFromFile "12queens.gc"
+        let tree = parseFromFile "A0.gc"
         postScriptWrapperAst tree "test"
         let tcp = tcP tree
         let codeRaw = CP tree

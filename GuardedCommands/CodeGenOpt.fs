@@ -67,17 +67,19 @@ module CodeGenerationOpt =
                 let (labfalse, k2) = addLabel (addCST 1 k1)
                 CompExpr vEnv fEnv b1 (IFNZRO labfalse :: CompExpr vEnv fEnv b2 (addJump jumpend k2))
                 
-        | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "="; "-"; "<"; "<>"; ">" ; "<="] ->
+        | Apply(o, [ e1; e2 ]) when List.exists (fun x -> o = x) [ "+"; "*"; "/"; "="; "-"; "<"; "<>"; ">" ; "<="; "%"] ->
             let ins =
                 match o with
                 | "+" -> ADD :: k
                 | "*" -> MUL :: k
+                | "/" -> DIV :: k
                 | "=" -> EQ :: k
                 | "-" -> SUB :: k
                 | "<" -> LT :: k
                 | "<>" -> EQ :: addNOT k
                 | ">" -> SWAP :: LT :: k
                 | "<=" -> SWAP :: LT :: addNOT k
+                | "%" -> MOD :: k
                 | _ -> failwith "CompExpr: this case is not possible"
             CompExpr vEnv fEnv e1 (CompExpr vEnv fEnv e2 ins)
         | Func(f,es) -> let (flabel,_,_) = Map.find f fEnv
