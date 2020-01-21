@@ -5,51 +5,115 @@ open Fable.Import
 open Browser.Dom
 open Browser.Types
 
-// Get our canvas context 
-// As we'll see later, myCanvas is mutable hence the use of the mutable keyword
-// the unbox keyword allows to make an unsafe cast. Here we assume that getElementById will return an HTMLCanvasElement 
-let mutable myCanvas : HTMLCanvasElement = unbox window.document.getElementById "myCanvas"  // myCanvas is defined in public/index.html
+type Message =
+    | Start
+    | Turn of int * int
+    | GameOver of bool
+    | Clear
+    | Opts
+    | Cancel // Todo, where to use?
 
-// Get the context
-let ctx = myCanvas.getContext_2d()
+// An asynchronous event queue kindly provided by Don Syme 
+type AsyncEventQueue<'T>() = 
+    let mutable cont = None 
+    let mutable queue = List.empty //Queue<'T>()
+    let tryTrigger() = 
+        match queue.Length, cont with 
+        | _, None -> ()
+        | 0, _ -> ()
+        | _, Some d -> 
+            cont <- None
+            // Hacky way to dequeue the list
+            let reversed = List.rev queue
+            queue <- List.rev queue.Tail
+            d (reversed.Head)
 
-// All these are immutables values
-let w = myCanvas.width
-let h = myCanvas.height
-let steps = 20
-let squareSize = 20
+    let tryListen(d) = 
+        if cont.IsSome then invalidOp "multicast not allowed"
+        cont <- Some d
+        tryTrigger()
 
-// gridWidth needs a float wo we cast tour int operation to a float using the float keyword
-let gridWidth = float (steps * squareSize) 
+    member x.Post msg = queue <- msg :: queue; tryTrigger()
+    member x.Receive() = 
+        Async.FromContinuations (fun (cont,econt,ccont) -> 
+            tryListen cont)
 
-// resize our canvas to the size of our grid
-// the arrow <- indicates we're mutating a value. It's a special operator in F#.
-myCanvas.width <- gridWidth
-myCanvas.height <- gridWidth
+let mutable StartDom : HTMLDivElement = unbox document.getElementById "start"
+let mutable GameDom : HTMLDivElement = unbox document.getElementById "game"
+let mutable FinishDom : HTMLDivElement = unbox document.getElementById "finished"
 
-// print the grid size to our debugger console
-printfn "%i" steps
+let mutable startBtn: HTMLButtonElement = unbox document.getElementById "start_start"
+let mutable settingsBtn: HTMLButtonElement = unbox document.getElementById "start_settings"
 
-// prepare our canvas operations
-[0..steps] // this is a list
-  |> Seq.iter( fun x -> // we iter through the list using an anonymous function
-      let v = float ((x) * squareSize) 
-      ctx.moveTo(v, 0.)
-      ctx.lineTo(v, gridWidth)
-      ctx.moveTo(0., v)
-      ctx.lineTo(gridWidth, v)
-    ) 
-ctx.strokeStyle <- !^"#ddd" // color
 
-// draw our grid
-ctx.stroke() 
 
-// write Fable
-ctx.textAlign <- "center"
-ctx.fillText("Fable on Canvas WITH MORE", gridWidth * 0.5, gridWidth * 0.5)
 
-printfn "done!"
+let showDom (dom: HTMLDivElement) =
+    for a in [StartDom; GameDom; FinishDom] do
+        a.classList.add "hidden"
+    dom.classList.remove "hidden"
 
+type GameState = int list
+
+let turn (gs:GameState) (ii, n): GameState = List.mapi (fun i e -> if i = ii then e - n else e) gs
+
+let isGameOver (gs:GameState) = List.forall (fun e -> e = 0) gs
+
+let aiMove (gs:GameState): GameState =
+    let rec zero max = function
+        | [] -> []
+        | h :: t when h = max -> h - 1 :: t
+        | h :: t -> h :: zero max t
+    and aboveZero m = function
+        | [] -> []
+        | h :: t when h > h ^^^ m -> (h ^^^ m) :: t
+        | h :: t -> h :: aboveZero m t
+    match List.fold (^^^) 0 gs with
+    | 0 -> zero (List.max gs) gs
+    | m -> aboveZero m gs
+
+
+
+let ev = AsyncEventQueue<Message>()
+
+let rec init() =
+    async {
+        printf "async init() started"
+        showDom StartDom
+        let! msg = ev.Receive()
+        match msg with
+        | Start -> return! start()
+        | _ -> failwith "unexpected msg"
+        ()
+    }
+and start() =
+    async {
+        printf "async start() called"
+        showDom GameDom
+        ()
+    }
+and playingPlayer() =
+    async {
+        ()
+    }
+and playingComputer() =
+    async {
+        ()
+    }
+and finished() =
+    async {
+        showDom FinishDom
+        ()
+    }
+and options() =
+    async {
+        ()
+    }
+
+startBtn.addEventListener("click", (fun _ -> ev.Post Start))
+
+
+Async.StartImmediate(init())
 
 let sleepForSeconds secs =
     async {

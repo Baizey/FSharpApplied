@@ -2,12 +2,34 @@
 <html>
 <head>
   <title>Fable</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+  <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
   <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="fable.ico" />
+  <style>
+    body, html {
+      height: 100%;
+      display: grid;
+    }
+    body > * {
+      margin: auto;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+  <script src="bundle.js" async defer></script>
 </head>
 <body>
+  <div id="start" class="hidden">
+    <button id="start_start" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Start</button>
+    <button id="start_settings" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Settings</button>
+  </div>
+  <div id="game" class="hidden">
     <canvas id="myCanvas"></canvas>
-    <script src="bundle.js"></script>
+  </div>
+  <div id="finished" class="hidden"></div>
 </body>
 </html>
