@@ -2,13 +2,13 @@ module App
 
 open Fable.Core.JsInterop
 open Fable.Import
-
-let window = Browser.Dom.window
+open Browser.Dom
+open Browser.Types
 
 // Get our canvas context 
 // As we'll see later, myCanvas is mutable hence the use of the mutable keyword
 // the unbox keyword allows to make an unsafe cast. Here we assume that getElementById will return an HTMLCanvasElement 
-let mutable myCanvas : Browser.Types.HTMLCanvasElement = unbox window.document.getElementById "myCanvas"  // myCanvas is defined in public/index.html
+let mutable myCanvas : HTMLCanvasElement = unbox window.document.getElementById "myCanvas"  // myCanvas is defined in public/index.html
 
 // Get the context
 let ctx = myCanvas.getContext_2d()
