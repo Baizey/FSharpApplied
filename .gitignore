@@ -369,3 +369,4 @@ MigrationBackup/
 
 # End of https://www.gitignore.io/api/fsharp,visualstudio
 .idea/.idea.FSharp/.idea/.name
+.ionide/symbolCache.db
