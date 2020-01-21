@@ -50,62 +50,93 @@ let mutable FinishDom : HTMLDivElement = unbox document.getElementById "finished
 let mutable startBtn: HTMLButtonElement = unbox document.getElementById "start_start"
 let mutable settingsBtn: HTMLButtonElement = unbox document.getElementById "start_settings"
 
+let mutable gameBoard: HTMLDivElement = unbox document.getElementById "game_board"
+let mutable gameText: HTMLParagraphElement = unbox document.getElementById "game_text"
+
+let mutable finishedBtn: HTMLButtonElement = unbox document.getElementById "finished_start"
+let mutable finishedText: HTMLParagraphElement = unbox document.getElementById "finished_text"
+
 let showDom (dom: HTMLDivElement) =
     for a in [StartDom; GameDom; FinishDom] do
         a.classList.add "hidden"
     dom.classList.remove "hidden"
 
 let renderPlayingDom (gs: GameState) =
-    
-    let elem b n = sprintf "<button id='%d-%d' class='mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect'>-</button>" b n
-    let bucket b n = 
-        let elems = [0..n] |> Seq.map (fun n -> elem b n) |> List.ofSeq |> List.fold (+) ""
-        "<div class='bucket'>" + elems + "<span>" + string n + "</span></div>"
+    let elem i n = sprintf "<button id='%d-%d' class='mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect'>%d</button>" n i n
+    let bucket i n = 
+        if n = 0 then ""
+        else
+            let elems = [1..n] |> Seq.map (fun n -> elem i n) |> List.ofSeq |> List.fold (+) ""
+            "<div class='bucket'>" + elems + "</div>"
 
     snd (List.fold (fun (i, acc) e -> (i + 1, acc + bucket i e)) (0, "") gs.Data)
 
-
 let ev = AsyncEventQueue<Message>()
+
+let makePlayingDomInteractive (gs:GameState) =
+    [0..(gs.Data.Length - 1)]
+    |> List.map (fun i -> [1..(gs.Data.Item i)] |> List.map (fun n -> (n, i)))
+    |> List.reduce List.append
+    |> List.fold (fun _ (n, i) -> 
+        let mutable btn : HTMLButtonElement = unbox document.getElementById (sprintf "%d-%d" n i)
+        btn.addEventListener("click", (fun _ -> ev.Post (Turn(n, i)))); ()) ()
 
 let rec start() =
     async {
         printf "async start() called"
         showDom StartDom
-        let! msg = ev.Receive()
-        match msg with
-        | Start -> return! playingPlayer(GameState([20;3;5]))
-        | LoadGame(url) -> return! loading(url)
-        | _ -> failwith "unexpected msg"
+        let rec stateChange =
+            async {
+                let! msg = ev.Receive()
+                match msg with
+                | Start -> return! playingPlayer(GameState([5;3;4]))
+                | LoadGame(url) -> return! loading(url)
+                | _ -> return! stateChange
+            }
+        return! stateChange
         ()
     }
-and playingPlayer(gs:GameState) =
+and playingPlayer(game:GameState) =
     async {
         printf "async playingPlayer() called"
         showDom GameDom
-        GameDom.innerHTML <- renderPlayingDom gs
-        let! msg = ev.Receive()
-        match msg with
-        | Turn(n,i) -> return! playingComputer(gs.PlayerTurn(n, i))
-        | GameOver(b) -> return! finished(b)
-        | _ -> failwith "unexpected msg"
+        gameText.innerText <- "Your turn..."
+        gameBoard.innerHTML <- renderPlayingDom game
+        makePlayingDomInteractive game |> ignore
+        if game.IsGameOver then return! finished(false)
+        let rec stateChange =
+            async {
+                let! msg = ev.Receive()
+                match msg with
+                | Turn(n, i) when (game.IsLegalMove n i) -> return! playingComputer(game.PlayerTurn n i)
+                | _ -> return! stateChange
+            }
+        return! stateChange
         ()
     }
-and playingComputer(gs:GameState) =
+and playingComputer(game:GameState) =
     async {
         printf "async playingComputer() called"
-        do! Async.Sleep(2 * 1000)
-        return! playingPlayer(gs.ComputerTurn)
+        gameText.innerText <- "Enemy thinking..."
+        gameBoard.innerHTML <- renderPlayingDom game
+        if game.IsGameOver then return! finished(true)
+        do! Async.Sleep(1000)
+        return! playingPlayer(game.ComputerTurn)
         ()
     }
 and finished(playerWon:bool) =
     async {
         printf "async finished() called"
+        finishedText.innerText <- if playerWon then "You won!" else "You lost!"
         showDom FinishDom
-        // TODO: display who won
-        let! msg = ev.Receive()
-        match msg with
-        | Clear -> return! start()
-        | _ -> failwith "unexpected msg"
+        let rec stateChange =
+            async {
+                let! msg = ev.Receive()
+                match msg with
+                | Clear -> return! start()
+                | _ -> return! stateChange
+            }
+        return! stateChange        
         ()
     }
 and loading(url) =
@@ -122,6 +153,7 @@ and options() =
     }
 
 startBtn.addEventListener("click", (fun _ -> ev.Post Start))
+finishedBtn.addEventListener("click", (fun _ -> ev.Post Clear))
 
 
 Async.StartImmediate(start())

@@ -2,7 +2,8 @@ module GameState
     type GameState(gs: int list) =
         member _.Data = gs
         member _.IsGameOver:bool = List.forall (fun e -> e = 0) gs
-        member _.PlayerTurn (ii:int, n:int):GameState = GameState(List.mapi (fun i e -> if i = ii then e - n else e) gs)
+        member _.IsLegalMove (n:int) (index:int):bool = (0 <= index && index < gs.Length) && (0 < n && n <= gs.Item index)
+        member _.PlayerTurn (n:int) (index:int):GameState = GameState(List.mapi (fun i e -> if i = index then e - n else e) gs)
         member _.ComputerTurn:GameState =
             let rec zero max = function
                 | [] -> []
