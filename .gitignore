@@ -1,3 +1,5 @@
+# Ignore Ionide
+.ionide
 
 # Ignore ps files
 *.ps

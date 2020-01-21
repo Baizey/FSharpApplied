@@ -46,8 +46,15 @@ ctx.stroke()
 
 // write Fable
 ctx.textAlign <- "center"
-ctx.fillText("Fable on Canvas", gridWidth * 0.5, gridWidth * 0.5)
+ctx.fillText("Fable on Canvas WITH MORE", gridWidth * 0.5, gridWidth * 0.5)
 
 printfn "done!"
 
 
+let sleepForSeconds secs =
+    async {
+        do! Async.Sleep(secs * 1000)
+        printfn "Slept for %d seconds" secs
+    }
+
+sleepForSeconds 5 |> Async.StartChild |> ignore
