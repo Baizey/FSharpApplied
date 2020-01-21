@@ -1,5 +1,6 @@
 module App
 
+open GameState
 open Fable.Core.JsInterop
 open Fable.Import
 open Browser.Dom
@@ -11,7 +12,11 @@ type Message =
     | GameOver of bool
     | Clear
     | Opts
+    | LoadGame of string
     | Cancel // Todo, where to use?
+    | Error
+    | Cancelled
+    | Web of string
 
 // An asynchronous event queue kindly provided by Don Syme 
 type AsyncEventQueue<'T>() = 
@@ -45,66 +50,72 @@ let mutable FinishDom : HTMLDivElement = unbox document.getElementById "finished
 let mutable startBtn: HTMLButtonElement = unbox document.getElementById "start_start"
 let mutable settingsBtn: HTMLButtonElement = unbox document.getElementById "start_settings"
 
-
-
-
 let showDom (dom: HTMLDivElement) =
     for a in [StartDom; GameDom; FinishDom] do
         a.classList.add "hidden"
     dom.classList.remove "hidden"
 
-type GameState = int list
+let renderPlayingDom (gs: GameState) =
+    
+    let elem b n = sprintf "<button id='%d-%d' class='mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect'>-</button>" b n
+    let bucket b n = 
+        let elems = [0..n] |> Seq.map (fun n -> elem b n) |> List.ofSeq |> List.fold (+) ""
+        "<div class='bucket'>" + elems + "<span>" + string n + "</span></div>"
 
-let turn (gs:GameState) (ii, n): GameState = List.mapi (fun i e -> if i = ii then e - n else e) gs
-
-let isGameOver (gs:GameState) = List.forall (fun e -> e = 0) gs
-
-let aiMove (gs:GameState): GameState =
-    let rec zero max = function
-        | [] -> []
-        | h :: t when h = max -> h - 1 :: t
-        | h :: t -> h :: zero max t
-    and aboveZero m = function
-        | [] -> []
-        | h :: t when h > h ^^^ m -> (h ^^^ m) :: t
-        | h :: t -> h :: aboveZero m t
-    match List.fold (^^^) 0 gs with
-    | 0 -> zero (List.max gs) gs
-    | m -> aboveZero m gs
-
+    snd (List.fold (fun (i, acc) e -> (i + 1, acc + bucket i e)) (0, "") gs.Data)
 
 
 let ev = AsyncEventQueue<Message>()
 
-let rec init() =
+let rec start() =
     async {
-        printf "async init() started"
+        printf "async start() called"
         showDom StartDom
         let! msg = ev.Receive()
         match msg with
-        | Start -> return! start()
+        | Start -> return! playingPlayer(GameState([20;3;5]))
+        | LoadGame(url) -> return! loading(url)
         | _ -> failwith "unexpected msg"
         ()
     }
-and start() =
+and playingPlayer(gs:GameState) =
     async {
-        printf "async start() called"
+        printf "async playingPlayer() called"
         showDom GameDom
+        GameDom.innerHTML <- renderPlayingDom gs
+        let! msg = ev.Receive()
+        match msg with
+        | Turn(n,i) -> return! playingComputer(gs.PlayerTurn(n, i))
+        | GameOver(b) -> return! finished(b)
+        | _ -> failwith "unexpected msg"
         ()
     }
-and playingPlayer() =
+and playingComputer(gs:GameState) =
     async {
+        printf "async playingComputer() called"
+        do! Async.Sleep(2 * 1000)
+        return! playingPlayer(gs.ComputerTurn)
         ()
     }
-and playingComputer() =
+and finished(playerWon:bool) =
     async {
-        ()
-    }
-and finished() =
-    async {
+        printf "async finished() called"
         showDom FinishDom
+        // TODO: display who won
+        let! msg = ev.Receive()
+        match msg with
+        | Clear -> return! start()
+        | _ -> failwith "unexpected msg"
         ()
     }
+and loading(url) =
+    async{
+        ()
+    } 
+and cancelling() =
+    async{
+        ()
+    }       
 and options() =
     async {
         ()
@@ -113,12 +124,12 @@ and options() =
 startBtn.addEventListener("click", (fun _ -> ev.Post Start))
 
 
-Async.StartImmediate(init())
+Async.StartImmediate(start())
 
-let sleepForSeconds secs =
-    async {
-        do! Async.Sleep(secs * 1000)
-        printfn "Slept for %d seconds" secs
-    }
+// let sleepForSeconds secs =
+//     async {
+//         do! Async.Sleep(secs * 1000)
+//         printfn "Slept for %d seconds" secs
+//     }
 
-sleepForSeconds 5 |> Async.StartChild |> ignore
+// sleepForSeconds 5 |> Async.StartChild |> ignore

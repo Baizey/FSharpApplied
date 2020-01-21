@@ -3,7 +3,9 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="GameState.fs" />
     <Compile Include="App.fs" />
+    
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Fable.Core" Version="3.0.0" />

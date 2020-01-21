@@ -1,0 +1,21 @@
+body, html {
+  height: 100%;
+  display: grid;
+}
+body > * {
+  margin: auto;
+}
+.hidden {
+  display: none;
+}
+
+.bucket {
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    float: left;
+}
+
+.mdl-button {
+    width: 100%;
+    margin-bottom: 1em;
+}
