@@ -6,7 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="Program.fs"/>
+        <Compile Include="Program.fs" />
+        <None Include="DialogueProgramMono.fsx" />
+        <None Include="DialogueProgram.fsx" />
     </ItemGroup>
 
 </Project>
