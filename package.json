@@ -1,0 +1,27 @@
+{
+  "name": "fsharpapplied",
+  "version": "1.0.0",
+  "description": "Project 3 of 02257 Applied Functional Programming",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Baizey/FSharpApplied.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Baizey/FSharpApplied/issues"
+  },
+  "homepage": "https://github.com/Baizey/FSharpApplied#readme",
+  "dependencies": {
+    "@babel/core": "^7.5.5",
+    "fable-compiler": "^2.3.19",
+    "fable-loader": "^2.1.8",
+    "webpack": "^4.39.2",
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.8.0"
+  }
+}
