@@ -16,3 +16,12 @@ module GameState
             match List.fold (^^^) 0 gs with
             | 0 -> GameState(zero (List.max gs) gs)
             | m -> GameState(aboveZero m gs)
+        member this.WillWin:bool =
+            let rec inner (gs:GameState) = function
+                | i when i % 2 = 0 -> 
+                    if gs.IsGameOver then true
+                    else inner gs.ComputerTurn (i + 1)
+                | i -> 
+                    if gs.IsGameOver then false
+                    else inner gs.ComputerTurn (i + 1)
+            inner this 1

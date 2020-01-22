@@ -90,7 +90,7 @@ let rec start() =
             async {
                 let! msg = ev.Receive()
                 match msg with
-                | Start -> return! playingPlayer(GameState([20;3;4;3;4;3;4;3;4;3;4;3;4;20;3;4;20;3;4;20;3;4;50]))
+                | Start -> return! playingPlayer(GameState([3;4;3;4;]))
                 | LoadGame(url) -> return! loading(url)
                 | _ -> return! stateChange
             }
@@ -119,9 +119,11 @@ and playingPlayer(game:GameState) =
 and playingComputer(game:GameState) =
     async {
         printf "async playingComputer() called"
-        gameText.innerText <- "Enemy thinking..."
         gameBoard.innerHTML <- renderPlayingDom game
         if game.IsGameOver then return! finished("You won!")
+        gameText.innerText <- "Enemy thinking..."
+        do! Async.Sleep(200)
+        if game.WillWin then gameText.innerHTML <- "Enemy thinking...<br>Might as well give up now!"
         do! Async.Sleep(1000)
         return! playingPlayer(game.ComputerTurn)
         ()
