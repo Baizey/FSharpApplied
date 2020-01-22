@@ -16,7 +16,7 @@ type Message =
     | Cancel // Todo, where to use?
     | Error
     | Cancelled
-    | Web of string
+    | Web of GameState
 
 // An asynchronous event queue kindly provided by Don Syme 
 type AsyncEventQueue<'T>() = 
@@ -103,11 +103,12 @@ and playingPlayer(game:GameState) =
         gameText.innerText <- "Your turn..."
         gameBoard.innerHTML <- renderPlayingDom game
         makePlayingDomInteractive game |> ignore
-        if game.IsGameOver then return! finished(false)
+        if game.IsGameOver then ev.Post(GameOver(false))
         let rec stateChange =
             async {
                 let! msg = ev.Receive()
                 match msg with
+                | GameOver(false) -> return! finished("You lost!")
                 | Turn(n, i) when (game.IsLegalMove n i) -> return! playingComputer(game.PlayerTurn n i)
                 | _ -> return! stateChange
             }
@@ -119,15 +120,15 @@ and playingComputer(game:GameState) =
         printf "async playingComputer() called"
         gameText.innerText <- "Enemy thinking..."
         gameBoard.innerHTML <- renderPlayingDom game
-        if game.IsGameOver then return! finished(true)
+        if game.IsGameOver then return! finished("You won!")
         do! Async.Sleep(1000)
         return! playingPlayer(game.ComputerTurn)
         ()
     }
-and finished(playerWon:bool) =
+and finished(text:string) =
     async {
         printf "async finished() called"
-        finishedText.innerText <- if playerWon then "You won!" else "You lost!"
+        finishedText.innerText <- text
         showDom FinishDom
         let rec stateChange =
             async {
@@ -142,10 +143,20 @@ and finished(playerWon:bool) =
 and loading(url) =
     async{
         ()
+        let! msg = ev.Receive()
+        match msg with
+        | Error -> return! finished("Error loading game")
+        | Cancel -> return! cancelling()
+        | Web gs -> return! playingPlayer(gs)
+        | _ -> failwith "Unexpected msg loading"
     } 
 and cancelling() =
     async{
         ()
+        let! msg = ev.Receive()
+        match msg with
+        | Error | Cancelled | Web _  -> return! finished("Cancelled loading game")
+        | _ -> failwith "Unexpected msg cancelling"
     }       
 and options() =
     async {
