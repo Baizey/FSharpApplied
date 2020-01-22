@@ -1,5 +1,6 @@
 <!doctype html>
 <html>
+
 <head>
   <title>Fable</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -11,11 +12,13 @@
   <link rel="stylesheet" href="index.css" />
   <script src="bundle.js" async defer></script>
 </head>
+
 <body>
   <div id="start" class="hidden">
-    <button id="start_start" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Start</button>
-    <button id="start_settings" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Settings</button>
-    <button id="start_load" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Load game</button>
+    <button id="start_start"
+      class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">Start</button>
+    <button id="start_settings"
+      class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Settings</button>
   </div>
   <div id="game" class="hidden">
     <p id="game_text"></p>
@@ -23,7 +26,50 @@
   </div>
   <div id="finished" class="hidden">
     <p id="finished_text"></p>
-    <button id="finished_start" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">To start</button>
+    <button id="finished_start" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">To
+      start</button>
   </div>
-</body>
+  <div id="loading" class="hidden">
+    <div id="loadingbar" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div> <br />
+    <button id="cancel_loading" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Cancel</button>
+  </div>
+  <div id="settings" class="hidden">
+    <form action="#">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" pattern="[2-9]|[1-9]+[0-9]+" required id="stngs_buckets"
+          value="5">
+        <label class="mdl-textfield__label" for="stngs_buckets">Number of buckets</label>
+        <span class="mdl-textfield__error">Please input 2 or more</span>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" pattern="[1-9]+[0-9]*" required id="stngs_matches" value="5">
+        <label class="mdl-textfield__label" for="stngs_matches">Number of matches</label>
+        <span class="mdl-textfield__error">Please input 1 or more</span>
+      </div>
+      <div class="mdl-switch-container">
+        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="stngs_easymode">
+          <input type="checkbox" id="stngs_easymode" class="mdl-switch__input">
+          <span class="mdl-switch__label">Easy mode</span>
+        </label>
+      </div>
+
+      <div>
+        <button id="settings_apply"
+          class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+          Apply
+        </button>
+        <button id="settings_cancel" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+          Cancel
+        </button>
+      </div>
+
+
+    </form>
+
+  </div>
+  <div aria-live="assertive" aria-atomic="true" aria-relevant="text" id="snackbar" class="mdl-snackbar mdl-js-snackbar">
+    <div class="mdl-snackbar__text"></div>
+    <button type="button" class="mdl-snackbar__action"></button>
+  </div>
+  </body>
 </html>

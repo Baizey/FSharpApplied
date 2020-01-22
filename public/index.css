@@ -30,6 +30,11 @@ body > * {
   margin-bottom: 1em;
 }
 
+.mdl-textfield, .mdl-switch-container {
+  width: 100%;
+  margin-bottom: 1em;
+}
+
 p,
 span {
   text-align: center;

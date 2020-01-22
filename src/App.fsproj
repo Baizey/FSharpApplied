@@ -3,7 +3,9 @@
     <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AsyncEventQueue.fs" />
     <Compile Include="GameState.fs" />
+    <Compile Include="Ui.fs" />
     <Compile Include="App.fs" />
     
   </ItemGroup>
