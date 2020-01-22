@@ -49,6 +49,7 @@ let mutable FinishDom : HTMLDivElement = unbox document.getElementById "finished
 
 let mutable startBtn: HTMLButtonElement = unbox document.getElementById "start_start"
 let mutable settingsBtn: HTMLButtonElement = unbox document.getElementById "start_settings"
+let mutable loadingBtn: HTMLButtonElement = unbox document.getElementById "start_load"
 
 let mutable gameBoard: HTMLDivElement = unbox document.getElementById "game_board"
 let mutable gameText: HTMLParagraphElement = unbox document.getElementById "game_text"
@@ -142,13 +143,15 @@ and finished(text:string) =
     }
 and loading(url) =
     async{
-        ()
+        
+        ev.Post(Error)
+        //Show some loading page with a cancel button and load a game
         let! msg = ev.Receive()
         match msg with
         | Error -> return! finished("Error loading game")
         | Cancel -> return! cancelling()
         | Web gs -> return! playingPlayer(gs)
-        | _ -> failwith "Unexpected msg loading"
+        | _ -> failwith "Unexpected msg loading" 
     } 
 and cancelling() =
     async{
@@ -165,6 +168,7 @@ and options() =
 
 startBtn.addEventListener("click", (fun _ -> ev.Post Start))
 finishedBtn.addEventListener("click", (fun _ -> ev.Post Clear))
+loadingBtn.addEventListener("click", (fun _ -> ev.Post (LoadGame("webpage"))))
 
 
 Async.StartImmediate(start())
