@@ -90,7 +90,7 @@ let rec start() =
             async {
                 let! msg = ev.Receive()
                 match msg with
-                | Start -> return! playingPlayer(GameState([5;3;4]))
+                | Start -> return! playingPlayer(GameState([20;3;4;3;4;3;4;3;4;3;4;3;4;20;3;4;20;3;4;20;3;4;50]))
                 | LoadGame(url) -> return! loading(url)
                 | _ -> return! stateChange
             }

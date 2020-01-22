@@ -1,4 +1,5 @@
-body, html {
+body,
+html {
   height: 100%;
   display: grid;
 }
@@ -9,17 +10,27 @@ body > * {
   display: none;
 }
 
+#game_board {
+  display: grid;
+  column-gap: 10px;
+  row-gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+}
+
 .bucket {
-    margin-left: 0.5em;
-    margin-right: 0.5em;
-    float: left;
+  max-height: 25em;
+  overflow-y: auto;
+  padding-right: 0.5em;
+  align-self: end;
+  justify-self: center;
 }
 
 .mdl-button {
-    width: 100%;
-    margin-bottom: 1em;
+  width: 100%;
+  margin-bottom: 1em;
 }
 
-p, span {
+p,
+span {
   text-align: center;
 }
