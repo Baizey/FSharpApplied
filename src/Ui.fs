@@ -4,7 +4,6 @@ module Ui
     open GameState
     open Fable.Import
     open Fable.Core
-    open Fable.Core.JsInterop
     open Browser.Dom
     open Browser.Types
 
@@ -12,7 +11,7 @@ module Ui
         abstract snackbar : message:string -> unit
 
     [<ImportAll("../public/snackbar.js")>]
-    let js: IAlert = jsNative    
+    let js: IAlert = jsNative
 
     type Ui(ev:AsyncEventQueue<Message>) =
 
