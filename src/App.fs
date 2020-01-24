@@ -25,13 +25,11 @@ let rec start() =
     }
 and playingPlayer(game:GameState) =
     async {
-        printf "StateMachine: playingPlayer %A" game
         ui.RenderGame game true
         if game.IsGameOver then ev.Post(GameOver(false))
         let rec stateChange =
             async {
                 let! msg = ev.Receive()
-                // printf "%A" msg
                 match msg with
                 | GameOver(false) -> return! finished("You lost!")
                 | Turn(n, i) when (game.IsLegalMove (n, i)) -> return! playingComputer(game.PlayerTurn (n, i))
@@ -42,11 +40,9 @@ and playingPlayer(game:GameState) =
     }
 and playingComputer(game:GameState) =
     async {
-        printf "StateMachine: playingComputer %A" game
         ui.RenderGame game false
         if game.IsGameOver then return! finished("You won!")
         do! Async.Sleep(1000)
-        printf "Doing AI move"
         return! playingPlayer(game.ComputerTurn)
         ()
     }
@@ -80,7 +76,6 @@ and loading() =
                     return! cancelling()
         | Start -> 
             let game = GameState.CreateGame settings
-            printf "%A" game
             return! playingPlayer(game)
         | _ -> failwith "Unexpected msg loading" 
     } 
