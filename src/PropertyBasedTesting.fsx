@@ -15,7 +15,7 @@ let gameStateGen: Gen<GameState> =
   gen {
     return! gsGen
       |> Gen.filter (fun (l, _, _) -> l.Length > 0)
-      |> Gen.map (fun (l, t, b) -> (List.map (fun x -> abs x) l, t, b))
+      |> Gen.map (fun (l, t, b) -> (List.map abs l, t, b))
       |> Gen.filter (fun (l, _, _) -> not (List.forall (fun x -> x = 0) l) )
       |> Gen.map (fun (l, t, e) -> GameState(l, t, e))
   }

@@ -111,11 +111,3 @@ and options() =
     }
 
 Async.StartImmediate(start())
-
-// let sleepForSeconds secs =
-//     async {
-//         do! Async.Sleep(secs * 1000)
-//         printfn "Slept for %d seconds" secs
-//     }
-
-// sleepForSeconds 5 |> Async.StartChild |> ignore
